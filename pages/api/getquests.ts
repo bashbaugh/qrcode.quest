@@ -6,40 +6,30 @@ import { requireAuth } from 'lib/apiAuth'
 
 const prisma = new PrismaClient()
 
-export interface GetQuestResponse {
-  notFound?: false
-  quest?: {
+export interface GetQuestsResponse {
+  quests: Array<{
     id: string
     name: string
-  }
+  }>
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GetQuestResponse>
+  res: NextApiResponse<GetQuestsResponse>
 ) {
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { id } = req.query
-
-  const quest = await prisma.quest.findUnique({
+  const quests = await prisma.quest.findMany({
     where: {
-      slug: id as string
+      userId: user.uid
     }
   })
 
-  if (!quest || quest.userId !== user.uid) {
-    res.json({
-      notFound: true
-    })
-    return
-  }
-
   res.json({
-    quest: {
-      id: quest.slug,
-      name: quest?.name
-    },
+    quests: quests.map(q => ({
+      id: q.slug,
+      name: q.name
+    }))
   })
 }

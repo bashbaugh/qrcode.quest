@@ -2,24 +2,44 @@ import type { NextPage, NextPageContext } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import { useRouter } from 'next/router'
-import { Heading } from '@chakra-ui/react'
-import { PrismaClient } from '@prisma/client'
+import { Heading, useToast, Skeleton, SkeletonText } from '@chakra-ui/react'
+import { useGlobalState } from 'lib/state'
+import { useRequireAuth } from 'lib/hooks'
+import { useEffect, useState } from 'react'
+import { GetQuestResponse } from 'pages/api/getquest'
+import axios from 'lib/axios'
 
-const prisma = new PrismaClient()
-
-const QuestSettings: NextPage<{
-  quest: {
-    id: string,
-    name: string
-  }
-}> = ({ quest }) => {
+const QuestSettings: NextPage = () => {
+  useRequireAuth()
   const router = useRouter()
+  const user = useGlobalState(s => s.user)
+  const [quest, setQuestData] = useState<GetQuestResponse['quest']>()
+  const toast = useToast({ position: 'top' })
+
+  useEffect(() => {
+    if (user) axios.get<GetQuestResponse>('/api/getquest?id=' + router.query.questId)
+    .then(res => {
+      setQuestData(res.data.quest)
+      if (res.data.notFound) {
+        router.push('/quests')
+        toast({
+          title: `Quest ${router.query.questId} does not exist`,
+          status: 'error'
+        })
+      }
+    })
+  }, [user])
 
   return (
     <Layout>
-      <Meta title={quest.name} />
-      <Heading>Quest Details</Heading>
-      <Heading size="md">{quest.name}</Heading>
+      {!quest && <>
+        <Skeleton h='12' w='72' />
+        <SkeletonText mt="12" noOfLines={6} spacing="4" />
+      </>}
+      {quest && <><Meta title={quest.name} /><Heading size="md" color={'gray'}>Quest Details</Heading>
+      <Heading>{quest.name}</Heading>
+      </>}
+      
     </Layout>
   )
 }
