@@ -12,7 +12,6 @@ if (!admin.apps.length)
 export async function requireAuth(
   req: NextApiRequest,
   res: NextApiResponse,
-  allow
 ): Promise<admin.auth.DecodedIdToken | undefined> {
   if (
     !req.headers.authorization ||
