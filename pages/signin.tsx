@@ -5,72 +5,71 @@ import {
   getAuth,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult
+  ConfirmationResult,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth'
 import { useEffect, useState } from 'react'
-import { Box, Center, Flex, Heading, Button, Input, useToast, Text } from '@chakra-ui/react'
+import {
+  Box,
+  Center,
+  Flex,
+  Heading,
+  Button,
+  Input,
+  useToast,
+  Text,
+  Spinner,
+} from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 
-let recaptcha: RecaptchaVerifier
-let recaptchaWidgetId: number
-let confResult: ConfirmationResult
+const googleProvider = new GoogleAuthProvider()
+
+import clsx from 'clsx'
+
+const AuthProviderButton: React.FC<{
+  iconName: string
+  onClick: () => void
+}> = ({ children, iconName, onClick }) => {
+  return (
+    <button
+      className={clsx(
+        'w-full rounded-sm py-3 bg-white shadow-lg flex items-center justify-center gap-2 border hover:shadow-xl transition-all duration-300'
+      )}
+      onClick={onClick}
+      // onClick={onClick}
+    >
+      <img src={`/icon/${iconName}.svg`} className="w-7" alt={iconName} />
+      <span>{children}</span>
+    </button>
+  )
+}
 
 const SignIn: NextPage = () => {
   const router = useRouter()
   const toast = useToast({
-    position: 'top'
+    position: 'top',
   })
-  const [input, setInput] = useState<string>('')
-  const [waitingForConf, setWaitingForConf] = useState(false)
+  const [signingIn, setSigningIn] = useState(false)
 
-  const onSubmit = async () => {
-    console.log('eeeb')
+  const signInWithProvider = async (provider: any) => {
     const auth = getAuth()
-
+    setSigningIn(true)
     try {
-      // TODO phone numbers from other countries
-      confResult = await signInWithPhoneNumber(auth, '+1' + input, recaptcha)
-
-      setInput('')
-      setWaitingForConf(true)
-    } catch (e) {
-      toast({ title: `We couldn't send an authentication code to that number`, status: 'error' })
-      console.error(e)
-
-      // ;(window as any).grecaptcha.reset(recaptchaWidgetId)
+      await signInWithPopup(auth, provider)
+      router.push('/quests')
+    } catch {
+      setSigningIn(false)
     }
   }
-
-  const onVerify = async () => {
-    const auth = getAuth()
-
-    const res = await confResult.confirm(input)
-
-    if (res?.user) router.push('/dashboard')
-  }
-
-  useEffect(() => {
-    const auth = getAuth()
-
-    recaptcha = new RecaptchaVerifier(
-      'sign-in-btn',
-      {
-        size: 'invisible'
-      },
-      auth
-    )
-
-    recaptcha.render().then(widgetId => {
-      recaptchaWidgetId = widgetId
-    })
-  }, [])
 
   return (
     <Layout>
       <Meta title="Sign In" />
-      <Center h="100vh">
+      <Center h="100%">
         <Flex
-          w='72'
+          w="72"
           direction="column"
           gridGap="5"
           textAlign="center"
@@ -79,24 +78,21 @@ const SignIn: NextPage = () => {
           p="6"
         >
           <Heading>Sign In</Heading>
-          {!waitingForConf && <><Input
-            type="tel"
-            w="full"
-            textAlign="center"
-            placeholder="Phone number"
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <Button id='sign-in-btn' onClick={onSubmit} colorScheme="purple">Sign In</Button>
-          <Text fontSize='sm' color='gray'>You will receive an SMS message for verification. Standard rates apply.</Text></>}
-          {waitingForConf && <><Text>We&apos;re texting you a 6-digit verification code. Please enter it here.</Text><Input
-            type="tel"
-            w="full"
-            textAlign="center"
-            placeholder="Verification code"
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <Button onClick={onVerify} colorScheme="purple">Confirm</Button></>}
 
+          {signingIn ? (
+            <Spinner mx="auto" size="xl" />
+          ) : (
+            <>
+              <Text>Please choose a sign-in provider</Text>
+
+              <AuthProviderButton
+                iconName="google"
+                onClick={() => signInWithProvider(googleProvider)}
+              >
+                Sign in with Google
+              </AuthProviderButton>
+            </>
+          )}
         </Flex>
       </Center>
     </Layout>

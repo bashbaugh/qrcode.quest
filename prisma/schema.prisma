@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 generator client {
@@ -11,21 +12,23 @@ generator client {
 }
 
 model User {
-  uid  String @id
-  hunt Hunt[]
+  uid    String  @id
+  quests Quest[]
 }
 
-model Hunt {
+model Quest {
   id     Int    @id @default(autoincrement())
-  codes  Code[]
+  slug   String @unique
   user   User   @relation(fields: [userId], references: [uid])
   userId String
   name   String
+  codes  Code[]
 }
 
 model Code {
-  id     Int    @id @default(autoincrement())
-  slug   String
-  hunt   Hunt   @relation(fields: [huntId], references: [id])
-  huntId Int
+  id      Int    @id @default(autoincrement())
+  slug    String @unique
+  quest   Quest  @relation(fields: [questId], references: [id])
+  questId Int
+  scans   Int
 }

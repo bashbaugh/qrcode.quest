@@ -1,7 +1,7 @@
 import Head from 'next/head'
 
-const name = 'APP NAME'
-const url = 'https://domain.com'
+const name = 'QRCode.Quest'
+const url = 'https://qrcode.quest'
 
 const Meta: React.FC<{
   title: string
@@ -9,11 +9,11 @@ const Meta: React.FC<{
   image?: string
 }> = ({
   title: pageTitle,
-  description = '(META DESCRIPTION)',
-  image = url + '/img/og/basic.jpg',
+  description = `Create a scavenger hunt using QR codes, and automatically track your players' progress`,
+  image = url + '/img/og/basic.png',
   children,
 }) => {
-  const title = pageTitle ? `${pageTitle} | ${name}` : name
+  const title = pageTitle ? `${pageTitle} * ${name} 🔍` : name
 
   return (
     <Head>
