@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { requireAuth } from 'lib/apiAuth'
+import { getQrCode } from 'lib/qr'
 
 const prisma = new PrismaClient()
 
@@ -14,6 +15,7 @@ export interface GetQuestResponse {
     codes: Array<{
       slug: string
       scans: number
+      image: string
     }>
   }
 }
@@ -25,15 +27,15 @@ export default async function handler(
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { id } = req.query
+  const id = req.query.slug
 
   const quest = await prisma.quest.findUnique({
     where: {
       slug: id as string,
     },
     include: {
-      codes: true
-    }
+      codes: true,
+    },
   })
 
   if (!quest || quest.userId !== user.uid) {
@@ -43,14 +45,19 @@ export default async function handler(
     return
   }
 
+  const images = await Promise.all(quest.codes.map((c) => getQrCode(c.slug)))
+
+  const codes = quest.codes.map((c, i) => ({
+    slug: c.slug,
+    scans: c.scans,
+    image: images[i],
+  }))
+
   res.json({
     quest: {
       id: quest.slug,
       name: quest?.name,
-      codes: quest.codes.map(c => ({
-        slug: c.slug,
-        scans: c.scans
-      }))
+      codes,
     },
   })
 }

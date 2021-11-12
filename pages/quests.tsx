@@ -97,7 +97,7 @@ const Hunts: NextPage = () => {
             <Skeleton w="full" rounded="xl" p="8">
               hey
             </Skeleton>
-            <Skeleton w="full"  rounded="xl" p="8">
+            <Skeleton w="full" rounded="xl" p="8">
               hey
             </Skeleton>
             <Skeleton w="full" rounded="xl" p="8">

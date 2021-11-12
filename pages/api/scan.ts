@@ -6,17 +6,11 @@ import { requireAuth } from 'lib/apiAuth'
 
 const prisma = new PrismaClient()
 
-export interface ScanResponse {
-}
+export interface ScanResponse {}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ScanResponse>
 ) {
-
-  res.json({
-    quest: {
-      id: quest.slug,
-    },
-  })
+  res.json({})
 }

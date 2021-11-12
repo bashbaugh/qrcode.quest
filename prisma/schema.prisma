@@ -24,13 +24,14 @@ model Quest {
   name       String
   codes      Code[]
   claimCodes ClaimCode[]
+  createdDate DateTime @default(now())
 }
 
 model Code {
   id      Int    @id @default(autoincrement())
   slug    String @unique
-  quest   Quest  @relation(fields: [questId], references: [id])
-  questId Int
+  quest   Quest?  @relation(fields: [questId], references: [id])
+  questId Int?
   scans   Int
 }
 

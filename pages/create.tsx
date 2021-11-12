@@ -17,10 +17,10 @@ import {
 } from '@chakra-ui/react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useRequireAuth } from 'lib/hooks'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import axios from 'lib/axios'
 import { useRouter } from 'next/router'
-import { CreateResponse } from './api/create'
+import { CreateResponse } from './api/quest/create'
 
 interface FormValues {
   name: string
@@ -30,15 +30,16 @@ interface FormValues {
 const Create: NextPage = () => {
   useRequireAuth()
   const router = useRouter()
+  const numberOfStepsRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const { register, handleSubmit } = useForm<FormValues>()
 
   const onSubmit = handleSubmit(async (data) => {
     setSubmitting(true)
 
-    const res = await axios.post<CreateResponse>('/api/create', {
+    const res = await axios.post<CreateResponse>('/api/quest/create', {
       name: data.name,
-      steps: parseInt(data.numberOfSteps),
+      steps: parseInt(numberOfStepsRef.current?.value),
     })
 
     router.replace(`/q/${res.data.quest.id}`)
@@ -66,7 +67,7 @@ const Create: NextPage = () => {
           <FormControl isRequired>
             <FormLabel>Number of Steps</FormLabel>
             <NumberInput precision={0} min={1} max={20} defaultValue={5}>
-              <NumberInputField {...register('numberOfSteps')} />
+              <NumberInputField ref={numberOfStepsRef} />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />

@@ -30,7 +30,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       })
 
       const idToken = await user?.getIdToken()
-      console.log(user, idToken)
 
       axios.defaults.headers.common['Authorization'] = user
         ? `Bearer ${await user.getIdToken()}`
