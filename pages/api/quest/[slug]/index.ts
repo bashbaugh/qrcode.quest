@@ -56,7 +56,10 @@ export default async function handler(
     image: images[i],
     name: c.name,
     note: c.note,
-    url: `https://qrcode.quest/${c.slug}`,
+    url:
+      process.env.NODE_ENV === 'development'
+        ? `http://localhost:3000/${c.slug}`
+        : `https://qrcode.quest/${c.slug}`,
   }))
 
   res.json({

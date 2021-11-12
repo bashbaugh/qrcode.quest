@@ -23,7 +23,7 @@ export default async function handler(
     },
   })
 
-  if (!quest) {
+  if (!quest || quest.userId !== user.uid) {
     res.status(400).send('Not found' as any)
     return
   }

@@ -42,6 +42,7 @@ import {
 } from '@chakra-ui/icons'
 import JSZip from 'jszip'
 import Link from 'next/link'
+import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updateCode'
 
 const QuestSettings: NextPage = () => {
   useRequireAuth()
@@ -56,18 +57,16 @@ const QuestSettings: NextPage = () => {
 
   const [processingDownload, setProcessingDownload] = useState(false)
 
-
   type NewCodeData = Partial<{
-    name: string
     note: string
   }>
   const [newCodesData, _setNewCodesData] = useState<
-    Record<string, NewCodeData>
+    Record<string, NewCodeData | null>
   >({})
   const updateCode = (slug: string, newData: NewCodeData) => {
     _setNewCodesData((d) => ({
       ...d,
-      [slug]: { ...(d[slug] || {}), ...newCodesData },
+      [slug]: { ...(d[slug] || {}), ...newData },
     }))
   }
   const [codesSaving, setCodesSaving] = useState<Record<string, boolean>>({})
@@ -134,8 +133,55 @@ const QuestSettings: NextPage = () => {
     })
   }
 
-  const saveCode = (slug: string) => {
-    setCodesSaving(s => ({...s, [slug]: true}))
+  const saveCode = async (slug: string) => {
+    setCodesSaving((s) => ({ ...s, [slug]: true }))
+    try {
+      const res = await axios.post<UpdateQuestCodeResponse>(
+        `/api/quest/${quest?.id}/updatecode`,
+        {
+          slug,
+          newData: {
+            note: newCodesData[slug]?.note,
+          },
+        }
+      )
+      _setNewCodesData((d) => ({ ...d, [slug]: null }))
+      toast({
+        title: 'Note published',
+        status: 'success',
+        duration: 1000
+      })
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: `Error saving note`,
+        status: 'error',
+      })
+      // router.reload()
+    } finally {
+      setCodesSaving((s) => ({ ...s, [slug]: false}))
+    }
+  }
+
+  const updateCodeName = async (slug: string, name: string) => {
+    try {
+      const res = await axios.post<UpdateQuestCodeResponse>(
+        `/api/quest/${quest?.id}/updatecode`,
+        {
+          slug,
+          newData: {
+            name,
+          },
+        }
+      )
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: `Error saving code title`,
+        status: 'error',
+      })
+      // router.reload()
+    }
   }
 
   return (
@@ -153,7 +199,7 @@ const QuestSettings: NextPage = () => {
           <Meta title={quest.name} />
           <Link href="/quests">
             <Button leftIcon={<ArrowBackIcon />} variant={'link'}>
-              All quests
+              My quests
             </Button>
           </Link>
           <Heading>{quest.name}</Heading>
@@ -192,7 +238,7 @@ const QuestSettings: NextPage = () => {
                       </Text>
                       <Editable
                         defaultValue={c.name || `Code ${i + 1}`}
-                        onSubmit={(name) => updateCode(c.slug, { name })}
+                        onSubmit={(name) => updateCodeName(c.slug, name)}
                       >
                         <EditablePreview cursor={'pointer'} />
                         <EditableInput />
@@ -206,13 +252,14 @@ const QuestSettings: NextPage = () => {
                     <Text fontWeight={'bold'}>Total scans: {c.scans}</Text>
 
                     <Textarea
+                      defaultValue={c.note || ''}
                       overflow={'scroll'}
                       w="full"
                       border={'none'}
                       focusBorderColor="none"
                       p="0"
                       size="sm"
-                      rows={1}
+                      rows={2}
                       placeholder="Leave a note for your hunters..."
                       resize={'none'}
                       onChange={(e) =>
@@ -242,7 +289,14 @@ const QuestSettings: NextPage = () => {
                         </Button>
                       </a>
                       {newCodesData[c.slug] && (
-                        <Button size="sm" colorScheme={'orange'} leftIcon={<CheckIcon />} isLoading={codesSaving[c.slug]} loadingText='Saving...' onClick={() => saveCode(c.slug)}>
+                        <Button
+                          size="sm"
+                          colorScheme={'orange'}
+                          leftIcon={<CheckIcon />}
+                          isLoading={codesSaving[c.slug]}
+                          loadingText="Saving..."
+                          onClick={() => saveCode(c.slug)}
+                        >
                           Save
                         </Button>
                       )}
