@@ -17,24 +17,27 @@ model User {
 }
 
 model Quest {
-  id         Int         @id @default(autoincrement())
-  slug       String      @unique
-  user       User        @relation(fields: [userId], references: [uid])
-  userId     String
-  name       String
-  codes      Code[]
-  claimCodes ClaimCode[]
-  createdDate DateTime @default(now())
+  id          Int         @id @default(autoincrement())
+  slug        String      @unique
+  user        User        @relation(fields: [userId], references: [uid])
+  userId      String
+  createdDate DateTime    @default(now())
+  name        String
+  codes       Code[]
+  claimCodes  ClaimCode[]
+
+  enableConfetti Boolean @default(false)
 }
 
 model Code {
-  id      Int    @id @default(autoincrement())
-  slug    String @unique
+  id      Int     @id @default(autoincrement())
+  slug    String  @unique
   quest   Quest?  @relation(fields: [questId], references: [id])
   questId Int?
+  order   Int
   scans   Int
-  name String?
-  note String?
+  name    String?
+  note    String?
 }
 
 model ClaimCode {

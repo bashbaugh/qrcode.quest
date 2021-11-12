@@ -6,7 +6,7 @@ const Layout: React.FC<{}> = ({ children }) => {
     <div className="w-full">
       <nav></nav>
 
-      <div className="max-w-6xl mx-auto p-12 md:p-32">
+      <div className="max-w-6xl mx-auto p-8 md:p-32">
         <main>{children}</main>
       </div>
 

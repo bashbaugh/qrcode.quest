@@ -24,6 +24,8 @@ import {
   EditablePreview,
   EditableInput,
   Textarea,
+  Switch,
+  FormLabel,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import { useRequireAuth } from 'lib/hooks'
@@ -42,7 +44,7 @@ import {
 } from '@chakra-ui/icons'
 import JSZip from 'jszip'
 import Link from 'next/link'
-import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updateCode'
+import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
 
 const QuestSettings: NextPage = () => {
   useRequireAuth()
@@ -71,6 +73,8 @@ const QuestSettings: NextPage = () => {
   }
   const [codesSaving, setCodesSaving] = useState<Record<string, boolean>>({})
 
+  const [_refreshTrigger, _setRefreshTrigger] = useState(0)
+  const refreshQuest = () => _setRefreshTrigger(i => i + 1)
   useEffect(() => {
     if (user)
       axios
@@ -86,9 +90,9 @@ const QuestSettings: NextPage = () => {
             return
           }
         })
-  }, [user])
+  }, [user, _refreshTrigger])
 
-  const onDelete = async () => {
+  const deleteQuest = async () => {
     setDeleting(true)
     try {
       const res = await axios.post<DeleteResponse>(
@@ -112,7 +116,7 @@ const QuestSettings: NextPage = () => {
     const zip = new JSZip()
 
     for (const i in quest!.codes) {
-      zip.file(`qr-${Number(i) + 1}.png`, quest!.codes[i].image.split(',')[1], {
+      zip.file(`qr-${Number(i) + 1}-${quest!.codes[i].name || ''}.png`, quest!.codes[i].image.split(',')[1], {
         base64: true,
       })
     }
@@ -174,10 +178,30 @@ const QuestSettings: NextPage = () => {
           },
         }
       )
+      refreshQuest()
     } catch (err) {
       console.error(err)
       toast({
         title: `Error saving code title`,
+        status: 'error',
+      })
+      // router.reload()
+    }
+  }
+
+  const updateQuest = async (newData: { name?: string, enableConfetti?: boolean }) => {
+    try {
+      const res = await axios.post<UpdateQuestCodeResponse>(
+        `/api/quest/${quest?.id}/update`,
+        {
+          newData
+        }
+      )
+      // refreshQuest()
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: `Error saving quest`,
         status: 'error',
       })
       // router.reload()
@@ -203,6 +227,15 @@ const QuestSettings: NextPage = () => {
             </Button>
           </Link>
           <Heading>{quest.name}</Heading>
+
+          <Box my="12">
+            <FormLabel display={'flex'} alignItems={'center'} gridGap={'2'}>
+              <Switch defaultChecked={quest.enableConfetti} colorScheme="yellow" size="lg" onChange={e => {
+                updateQuest({ enableConfetti: e.target.checked})
+              }} />
+              <Text as='span'>Enable Confetti</Text>
+            </FormLabel>
+          </Box>
 
           <Box my="12">
             <Button
@@ -271,7 +304,7 @@ const QuestSettings: NextPage = () => {
                     <Flex gridGap={'3'}>
                       <a
                         href={c.image}
-                        download={`qr-code-quest-${quest.id}_${i + 1}`}
+                        download={`qr-code-quest-${quest.id}_${i + 1} ${c.name || ''}`}
                       >
                         <Button
                           colorScheme={'green'}
@@ -338,7 +371,7 @@ const QuestSettings: NextPage = () => {
                   </Button>
                   <Button
                     colorScheme="red"
-                    onClick={onDelete}
+                    onClick={deleteQuest}
                     ml={3}
                     isLoading={deleting}
                   >

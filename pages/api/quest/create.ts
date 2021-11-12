@@ -33,7 +33,8 @@ export default async function handler(
       },
       codes: {
         createMany: {
-          data: new Array(steps).fill(null).map((_) => ({
+          data: new Array(steps).fill(null).map((_, i) => ({
+            order: i,
             slug: nanoid(11),
             scans: 0,
           })),

@@ -12,6 +12,7 @@ export interface GetQuestResponse {
   quest?: {
     id: string
     name: string
+    enableConfetti: boolean
     codes: Array<{
       slug: string
       scans: number
@@ -37,11 +38,16 @@ export default async function handler(
       slug: id as string,
     },
     include: {
-      codes: true,
+      codes: {
+        orderBy: {
+          order: 'asc'
+        }
+      },
     },
   })
 
   if (!quest || quest.userId !== user.uid) {
+    // TODO 404
     res.json({
       notFound: true,
     })
@@ -65,7 +71,8 @@ export default async function handler(
   res.json({
     quest: {
       id: quest.slug,
-      name: quest?.name,
+      name: quest.name,
+      enableConfetti: quest.enableConfetti,
       codes,
     },
   })

@@ -17,6 +17,7 @@
     "@prisma/client": "3.4.2",
     "axios": "^0.24.0",
     "clsx": "^1.1.1",
+    "confetti-js": "^0.0.18",
     "cookie": "^0.4.1",
     "easyqrcodejs-nodejs": "^4.4.0",
     "firebase": "^9.1.3",
