@@ -20,6 +20,10 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  Textarea,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import { useRequireAuth } from 'lib/hooks'
@@ -30,9 +34,14 @@ import { useToast } from 'lib/toast'
 import create from 'zustand'
 import { GetQuestsResponse } from 'pages/api/getquests'
 import { DeleteResponse } from 'pages/api/quest/[slug]/delete'
-import { AttachmentIcon, DownloadIcon } from '@chakra-ui/icons'
+import {
+  ArrowBackIcon,
+  AttachmentIcon,
+  CheckIcon,
+  DownloadIcon,
+} from '@chakra-ui/icons'
 import JSZip from 'jszip'
-import JSZipUtils from 'jszip-utils'
+import Link from 'next/link'
 
 const QuestSettings: NextPage = () => {
   useRequireAuth()
@@ -47,6 +56,22 @@ const QuestSettings: NextPage = () => {
 
   const [processingDownload, setProcessingDownload] = useState(false)
 
+
+  type NewCodeData = Partial<{
+    name: string
+    note: string
+  }>
+  const [newCodesData, _setNewCodesData] = useState<
+    Record<string, NewCodeData>
+  >({})
+  const updateCode = (slug: string, newData: NewCodeData) => {
+    _setNewCodesData((d) => ({
+      ...d,
+      [slug]: { ...(d[slug] || {}), ...newCodesData },
+    }))
+  }
+  const [codesSaving, setCodesSaving] = useState<Record<string, boolean>>({})
+
   useEffect(() => {
     if (user)
       axios
@@ -59,6 +84,7 @@ const QuestSettings: NextPage = () => {
               title: `Quest ${router.query.questId} does not exist`,
               status: 'error',
             })
+            return
           }
         })
   }, [user])
@@ -66,15 +92,20 @@ const QuestSettings: NextPage = () => {
   const onDelete = async () => {
     setDeleting(true)
     try {
-    const res = await axios.post<DeleteResponse>(`/api/quest/${quest?.id}/delete`)
-    if (res.data.deleted) {
-      toast({
-        title: 'Quest deleted succesfully'
-      })
-      router.push('/quests')
-    }} catch (err) {console.error(err)
+      const res = await axios.post<DeleteResponse>(
+        `/api/quest/${quest?.id}/delete`
+      )
+      if (res.data.deleted) {
+        toast({
+          title: 'Quest deleted succesfully',
+        })
+        router.push('/quests')
+      }
+    } catch (err) {
+      console.error(err)
       setDeleting(false)
-      setDeleteOpen(false)}
+      setDeleteOpen(false)
+    }
   }
 
   const downloadAll = async () => {
@@ -82,23 +113,29 @@ const QuestSettings: NextPage = () => {
     const zip = new JSZip()
 
     for (const i in quest!.codes) {
-      zip.file(`qr-${Number(i) + 1}.png`, quest!.codes[i].image.split(',')[1], { base64: true })
+      zip.file(`qr-${Number(i) + 1}.png`, quest!.codes[i].image.split(',')[1], {
+        base64: true,
+      })
     }
 
     const file = await zip.generateAsync({
-      type: 'base64'
+      type: 'base64',
     })
 
     const a = document.createElement('a')
-    a.href = "data:application/zip;base64," + file
+    a.href = 'data:application/zip;base64,' + file
     a.download = `qr-code-quest ${quest?.name}` // ZIP File name
     a.click() // Trigger the download
 
     setProcessingDownload(false)
     toast({
-      title: "Your QR codes are ready",
-      status: 'success'
+      title: 'Your QR codes are ready',
+      status: 'success',
     })
+  }
+
+  const saveCode = (slug: string) => {
+    setCodesSaving(s => ({...s, [slug]: true}))
   }
 
   return (
@@ -114,13 +151,22 @@ const QuestSettings: NextPage = () => {
       {quest && (
         <>
           <Meta title={quest.name} />
-          <Heading size="md" color={'gray'} fontWeight={'semibold'}>
-            Quest Details
-          </Heading>
+          <Link href="/quests">
+            <Button leftIcon={<ArrowBackIcon />} variant={'link'}>
+              All quests
+            </Button>
+          </Link>
           <Heading>{quest.name}</Heading>
 
           <Box my="12">
-            <Button colorScheme='green' leftIcon={<AttachmentIcon />} onClick={downloadAll} isLoading={processingDownload}>Download all files</Button>
+            <Button
+              colorScheme="green"
+              leftIcon={<AttachmentIcon />}
+              onClick={downloadAll}
+              isLoading={processingDownload}
+            >
+              Download all files
+            </Button>
             <Stack
               spacing={'4'}
               my="4"
@@ -134,36 +180,83 @@ const QuestSettings: NextPage = () => {
               {quest.codes.map((c, i) => (
                 <Flex gridGap={'6'} key={c.slug}>
                   <Image src={c.image} alt="QR Code" w={'44'} />
-                  <Flex direction={'column'} gridGap={'1'} key={c.slug}>
-                    <Heading size={'md'}>Code {i + 1}</Heading>
+                  <Flex
+                    w="full"
+                    direction={'column'}
+                    gridGap={'0.5'}
+                    key={c.slug}
+                  >
+                    <Heading size={'md'} display={'flex'} alignItems={'center'}>
+                      <Text as="span" color={'gray.400'} mr="2">
+                        {i + 1}.
+                      </Text>
+                      <Editable
+                        defaultValue={c.name || `Code ${i + 1}`}
+                        onSubmit={(name) => updateCode(c.slug, { name })}
+                      >
+                        <EditablePreview cursor={'pointer'} />
+                        <EditableInput />
+                      </Editable>
+                    </Heading>
+                    <a href={c.url + '/?testMode=1'} target={'_blank'}>
+                      <Text fontSize={'xs'} color={'gray.400'}>
+                        {c.url}
+                      </Text>
+                    </a>
                     <Text fontWeight={'bold'}>Total scans: {c.scans}</Text>
 
+                    <Textarea
+                      overflow={'scroll'}
+                      w="full"
+                      border={'none'}
+                      focusBorderColor="none"
+                      p="0"
+                      size="sm"
+                      rows={1}
+                      placeholder="Leave a note for your hunters..."
+                      resize={'none'}
+                      onChange={(e) =>
+                        updateCode(c.slug, { note: e.target.value })
+                      }
+                    />
+
                     <Spacer />
-                    <a
-                      href={c.image}
-                      download={`qr-code-quest-${quest.id}_${i + 1}`}
-                    >
-                      <Button
-                        colorScheme={'green'}
-                        size='sm'
-                        leftIcon={<DownloadIcon />}
-                        onClick={() => {
-                          toast({
-                            title: 'Preparing download...',
-                            status: 'info',
-                            duration: 2000,
-                          })
-                        }}
+                    <Flex gridGap={'3'}>
+                      <a
+                        href={c.image}
+                        download={`qr-code-quest-${quest.id}_${i + 1}`}
                       >
-                        Download
-                      </Button>
-                    </a>
+                        <Button
+                          colorScheme={'green'}
+                          size="sm"
+                          leftIcon={<DownloadIcon />}
+                          onClick={() => {
+                            toast({
+                              title: 'Preparing download...',
+                              status: 'info',
+                              duration: 2000,
+                            })
+                          }}
+                        >
+                          Download
+                        </Button>
+                      </a>
+                      {newCodesData[c.slug] && (
+                        <Button size="sm" colorScheme={'orange'} leftIcon={<CheckIcon />} isLoading={codesSaving[c.slug]} loadingText='Saving...' onClick={() => saveCode(c.slug)}>
+                          Save
+                        </Button>
+                      )}
+                    </Flex>
                   </Flex>
                 </Flex>
               ))}
             </Stack>
           </Box>
-          <Button colorScheme={'red'} variant={'ghost'} onClick={() => setDeleteOpen(true)}>
+          <Button
+            colorScheme={'red'}
+            variant={'ghost'}
+            onClick={() => setDeleteOpen(true)}
+          >
             Delete this quest
           </Button>
           <AlertDialog
@@ -178,7 +271,8 @@ const QuestSettings: NextPage = () => {
                 </AlertDialogHeader>
 
                 <AlertDialogBody>
-                  Are you sure? All QR codes associated with this quest will stop functioning, and you can't undo this.
+                  Are you sure? All QR codes associated with this quest will
+                  stop functioning, and you can't undo this.
                 </AlertDialogBody>
 
                 <AlertDialogFooter>

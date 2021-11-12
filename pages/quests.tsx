@@ -53,6 +53,7 @@ const Hunts: NextPage = () => {
         <Heading>My Quests</Heading>
         <Spacer />
         <Button
+          variant="ghost"
           onClick={async () => {
             router.push('/')
             await signOut(getAuth())

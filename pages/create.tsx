@@ -21,6 +21,7 @@ import { useRef, useState } from 'react'
 import axios from 'lib/axios'
 import { useRouter } from 'next/router'
 import { CreateResponse } from './api/quest/create'
+import { useToast } from 'lib/toast'
 
 interface FormValues {
   name: string
@@ -33,16 +34,26 @@ const Create: NextPage = () => {
   const numberOfStepsRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const { register, handleSubmit } = useForm<FormValues>()
+  const toast = useToast()
 
   const onSubmit = handleSubmit(async (data) => {
     setSubmitting(true)
 
-    const res = await axios.post<CreateResponse>('/api/quest/create', {
-      name: data.name,
-      steps: parseInt(numberOfStepsRef.current?.value),
-    })
+    try {
+      const res = await axios.post<CreateResponse>('/api/quest/create', {
+        name: data.name,
+        steps: parseInt(numberOfStepsRef.current?.value),
+      })
 
-    router.replace(`/q/${res.data.quest.id}`)
+      router.replace(`/q/${res.data.quest.id}`)
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Something went wrong. Please try again',
+        status: 'error',
+      })
+      setSubmitting(false)
+    }
   })
 
   return (

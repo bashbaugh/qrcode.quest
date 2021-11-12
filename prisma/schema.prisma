@@ -33,6 +33,8 @@ model Code {
   quest   Quest?  @relation(fields: [questId], references: [id])
   questId Int?
   scans   Int
+  name String?
+  note String?
 }
 
 model ClaimCode {

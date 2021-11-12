@@ -16,6 +16,9 @@ export interface GetQuestResponse {
       slug: string
       scans: number
       image: string
+      name: string | null
+      note: string | null
+      url: string
     }>
   }
 }
@@ -51,6 +54,9 @@ export default async function handler(
     slug: c.slug,
     scans: c.scans,
     image: images[i],
+    name: c.name,
+    note: c.note,
+    url: `https://qrcode.quest/${c.slug}`,
   }))
 
   res.json({

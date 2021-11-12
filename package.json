@@ -23,7 +23,6 @@
     "firebase-admin": "^10.0.0",
     "framer-motion": "^4",
     "jszip": "^3.7.1",
-    "jszip-utils": "^0.1.0",
     "nanoid": "^3.1.30",
     "next": "11.1.2",
     "nprogress": "^0.2.0",

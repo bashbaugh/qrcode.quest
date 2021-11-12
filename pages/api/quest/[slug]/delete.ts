@@ -19,8 +19,8 @@ export default async function handler(
 
   const quest = await prisma.quest.findUnique({
     where: {
-      slug: req.query.slug as string
-    }
+      slug: req.query.slug as string,
+    },
   })
 
   if (!quest) {
@@ -30,11 +30,11 @@ export default async function handler(
 
   await prisma.quest.delete({
     where: {
-      id: quest.id
-    }
+      id: quest.id,
+    },
   })
 
   res.json({
-    deleted: true
+    deleted: true,
   })
 }
