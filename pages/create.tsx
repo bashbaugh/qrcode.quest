@@ -41,7 +41,7 @@ const Create: NextPage = () => {
       steps: parseInt(data.numberOfSteps),
     })
 
-    router.push(`/q/${res.data.quest.id}`)
+    router.replace(`/q/${res.data.quest.id}`)
   })
 
   return (

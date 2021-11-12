@@ -17,12 +17,13 @@ model User {
 }
 
 model Quest {
-  id     Int    @id @default(autoincrement())
-  slug   String @unique
-  user   User   @relation(fields: [userId], references: [uid])
-  userId String
-  name   String
-  codes  Code[]
+  id         Int         @id @default(autoincrement())
+  slug       String      @unique
+  user       User        @relation(fields: [userId], references: [uid])
+  userId     String
+  name       String
+  codes      Code[]
+  claimCodes ClaimCode[]
 }
 
 model Code {
@@ -31,4 +32,12 @@ model Code {
   quest   Quest  @relation(fields: [questId], references: [id])
   questId Int
   scans   Int
+}
+
+model ClaimCode {
+  id      Int     @id @default(autoincrement())
+  code    Int
+  claimed Boolean
+  quest   Quest?  @relation(fields: [questId], references: [id])
+  questId Int?
 }

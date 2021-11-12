@@ -11,7 +11,7 @@ if (!admin.apps.length)
 
 export async function requireAuth(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ): Promise<admin.auth.DecodedIdToken | undefined> {
   if (
     !req.headers.authorization ||
@@ -33,6 +33,5 @@ export async function requireAuth(
   const user = decodedToken
   if (user?.uid) {
     return user
-  }
-  else res.status(401).send('UNAUTHORIZED')
+  } else res.status(401).send('UNAUTHORIZED')
 }

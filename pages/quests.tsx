@@ -9,19 +9,42 @@ import {
   Spacer,
   Grid,
   Box,
-  useToast,
+  Skeleton,
 } from '@chakra-ui/react'
 import { signOut, getAuth } from '@firebase/auth'
 import { useRouter } from 'next/router'
 import { useRequireAuth } from 'lib/hooks'
+import { useToast } from 'lib/toast'
+import { useEffect, useState } from 'react'
+import { useGlobalState } from 'lib/state'
+import { GetQuestsResponse } from './api/getquests'
+import axios from 'lib/axios'
+import create from 'zustand'
+
+const useQuests = create<{
+  quests: GetQuestsResponse['quests']
+  loaded: boolean
+  refreshQuests: () => void
+}>((set) => ({
+  quests: [],
+  loaded: false,
+  refreshQuests() {
+    axios.get<GetQuestsResponse>('/api/getquests').then((res) => {
+      set({ quests: res.data.quests, loaded: true })
+    })
+  },
+}))
 
 const Hunts: NextPage = () => {
-  const toast = useToast({
-    position: 'top',
-  })
-  const router = useRouter()
-
   useRequireAuth()
+  const toast = useToast()
+  const router = useRouter()
+  const user = useGlobalState((s) => s.user)
+  const { quests, loaded, refreshQuests } = useQuests()
+
+  useEffect(() => {
+    if (user) refreshQuests()
+  }, [user])
 
   return (
     <Layout>
@@ -43,13 +66,45 @@ const Hunts: NextPage = () => {
         </Button>
       </Flex>
       <Grid templateColumns="repeat(3, 1fr)" gap={4} my="8">
-        <Link href="/create">
-          <a>
-            <Box backgroundColor={'gray.100'} rounded={'xl'} p="8">
-              Add
-            </Box>
-          </a>
-        </Link>
+        {loaded && (
+          <>
+            <Link href="/create">
+              <a>
+                <Box backgroundColor={'gray.100'} rounded={'xl'} p="8">
+                  Add
+                </Box>
+              </a>
+            </Link>
+            {quests?.map((q) => (
+              <Link key={q.id} href={`/q/${q.id}`}>
+                <a>
+                  <Box backgroundColor={'gray.100'} rounded={'xl'} p="8">
+                    {q.name}
+                  </Box>
+                </a>
+              </Link>
+            ))}
+          </>
+        )}
+        {!loaded && (
+          <>
+            <Skeleton w="full" rounded="xl" p="8">
+              hey
+            </Skeleton>
+            <Skeleton w="full" rounded="xl" p="8">
+              hey
+            </Skeleton>
+            <Skeleton w="full" rounded="xl" p="8">
+              hey
+            </Skeleton>
+            <Skeleton w="full"  rounded="xl" p="8">
+              hey
+            </Skeleton>
+            <Skeleton w="full" rounded="xl" p="8">
+              hey
+            </Skeleton>
+          </>
+        )}
       </Grid>
     </Layout>
   )

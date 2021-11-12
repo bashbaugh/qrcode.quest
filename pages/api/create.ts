@@ -28,8 +28,8 @@ export default async function handler(
       user: {
         connectOrCreate: {
           where: { uid: user.uid },
-          create: { uid: user.uid }
-        }
+          create: { uid: user.uid },
+        },
       },
       codes: {
         createMany: {

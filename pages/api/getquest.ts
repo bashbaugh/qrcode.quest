@@ -7,10 +7,14 @@ import { requireAuth } from 'lib/apiAuth'
 const prisma = new PrismaClient()
 
 export interface GetQuestResponse {
-  notFound?: false
+  notFound?: true
   quest?: {
     id: string
     name: string
+    codes: Array<{
+      slug: string
+      scans: number
+    }>
   }
 }
 
@@ -25,13 +29,16 @@ export default async function handler(
 
   const quest = await prisma.quest.findUnique({
     where: {
-      slug: id as string
+      slug: id as string,
+    },
+    include: {
+      codes: true
     }
   })
 
   if (!quest || quest.userId !== user.uid) {
     res.json({
-      notFound: true
+      notFound: true,
     })
     return
   }
@@ -39,7 +46,11 @@ export default async function handler(
   res.json({
     quest: {
       id: quest.slug,
-      name: quest?.name
+      name: quest?.name,
+      codes: quest.codes.map(c => ({
+        slug: c.slug,
+        scans: c.scans
+      }))
     },
   })
 }
