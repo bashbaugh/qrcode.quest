@@ -13,6 +13,7 @@ export interface GetQuestResponse {
     id: string
     name: string
     enableConfetti: boolean
+    completionNote: string
     codes: Array<{
       slug: string
       scans: number
@@ -40,8 +41,8 @@ export default async function handler(
     include: {
       codes: {
         orderBy: {
-          order: 'asc'
-        }
+          order: 'asc',
+        },
       },
     },
   })
@@ -73,6 +74,7 @@ export default async function handler(
       id: quest.slug,
       name: quest.name,
       enableConfetti: quest.enableConfetti,
+      completionNote: quest.completionNote,
       codes,
     },
   })

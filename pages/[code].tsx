@@ -7,53 +7,68 @@ import getCode from 'lib/getCode'
 import cookie from 'cookie'
 import { useEffect, useRef } from 'react'
 import ConfettiGenerator from 'confetti-js'
+import axios from 'lib/axios'
+
+export const DEFAULT_CODE_NOTE = 'Congrats, you found all the codes!'
 
 interface CodePageProps {
-  data: {
-    questDeleted: true
-  } | {
-    questDeleted: false
-    slug: string
-    isNewCode: boolean
-    codesFound: number
-    totalCodes: number
-    questClaimed: boolean
-    enableConfetti: boolean
-  }
+  data:
+    | {
+        questDeleted: true
+      }
+    | {
+        questDeleted: false
+        slug: string
+        note: string
+        isFinalCode: boolean
+        isNewCode: boolean
+        codesFound: number
+        totalCodes: number
+        questClaimed: boolean
+        enableConfetti: boolean
+        completionNote?: string
+      }
 }
 
-const QuestSettings: NextPage<CodePageProps> = ({
-  data
-}) => {
+const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const confettiCanvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
+  
+  const testMode = !!router.query.testMode
 
   useEffect(() => {
-    if (!data.questDeleted && data.enableConfetti) {
-      const confetti = new ConfettiGenerator({
-        target: confettiCanvasRef.current,
-        max: '300',
-        size: '1',
-        animate: true,
-        props: ['circle', 'square', 'triangle', 'line'],
-        colors: [
-          [165, 104, 246],
-          [230, 61, 135],
-          [0, 199, 228],
-          [253, 214, 126]
-        ],
-        clock: '20',
-        rotate: true,
-        start_from_edge: false,
-        respawn: true
+    if (!data.questDeleted) {
+      if (!testMode) axios.post('/api/trackscan', {
+        slug: data.slug
       })
-      confetti.render()
 
-      return () => {
-        confetti.clear()
+      if (data.enableConfetti) {
+        const confetti = new ConfettiGenerator({
+          target: confettiCanvasRef.current,
+          max: '300',
+          size: '1',
+          animate: true,
+          props: ['circle', 'square', 'triangle', 'line'],
+          colors: [
+            [165, 104, 246],
+            [230, 61, 135],
+            [0, 199, 228],
+            [253, 214, 126],
+          ],
+          clock: '20',
+          rotate: true,
+          start_from_edge: false,
+          respawn: true,
+        })
+        confetti.render()
+  
+        return () => {
+          confetti.clear()
+        }
       }
     }
 
+    
   }, [])
 
   return (
@@ -67,13 +82,15 @@ const QuestSettings: NextPage<CodePageProps> = ({
           top: 0,
           width: '100%',
           height: '100%',
-          zIndex: -1
+          zIndex: -1,
         }}
       />
       {/* {data.questClaimed && 'You have already claimed this quest.'} */}
-      {!data.questDeleted && <>
-        You found {data.codesFound} out of {data.totalCodes} codes!
-      </>}
+      {!data.questDeleted && (
+        <>
+          You found {data.codesFound} out of {data.totalCodes} codes!
+        </>
+      )}
     </Layout>
   )
 }
@@ -91,15 +108,16 @@ export async function getServerSideProps(ctx: NextPageContext) {
 
   const code = await getCode(ctx.query.code)
 
-  if (!code) return {
+  if (!code)
+    return {
       notFound: true,
     }
 
   if (!code.quest) {
     const props: CodePageProps = {
       data: {
-        questDeleted: true
-      }
+        questDeleted: true,
+      },
     }
     return { props }
   }
@@ -111,13 +129,15 @@ export async function getServerSideProps(ctx: NextPageContext) {
     scannedCodesCookie?.split(COOKIE_DELIMITER) || []
   )
 
-  const isNewCode= !scannedCodes.has(ctx.query.code)
+  const isNewCode = !scannedCodes.has(ctx.query.code)
   scannedCodes.add(ctx.query.code)
 
   let codesFound = 0
   for (const questCode of code.quest.codes) {
     if (scannedCodes.has(questCode.slug)) codesFound++
   }
+
+  const isFinalCode = codesFound === code.quest.codes.length
 
   const newCodesString = Array.from(scannedCodes).join(COOKIE_DELIMITER)
   ctx.res?.setHeader('Set-Cookie', [
@@ -132,8 +152,11 @@ export async function getServerSideProps(ctx: NextPageContext) {
       codesFound,
       totalCodes: code.quest.codes.length,
       questClaimed: false,
-      enableConfetti: code.quest.enableConfetti
-    }
+      enableConfetti: code.quest.enableConfetti,
+      note: code.note || DEFAULT_CODE_NOTE,
+      isFinalCode,
+      completionNote: isFinalCode ? code.quest.completionNote : undefined,
+    },
   }
 
   return { props }

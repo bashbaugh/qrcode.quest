@@ -27,6 +27,7 @@ model Quest {
   claimCodes  ClaimCode[]
 
   enableConfetti Boolean @default(false)
+  completionNote String  @default("")
 }
 
 model Code {

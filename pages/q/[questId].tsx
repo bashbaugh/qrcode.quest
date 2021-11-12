@@ -26,6 +26,12 @@ import {
   Textarea,
   Switch,
   FormLabel,
+  FormControl,
+  FormHelperText,
+  Tooltip,
+  useEditableControls,
+  ButtonGroup,
+  IconButton,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import { useRequireAuth } from 'lib/hooks'
@@ -40,11 +46,49 @@ import {
   ArrowBackIcon,
   AttachmentIcon,
   CheckIcon,
+  CloseIcon,
   DownloadIcon,
+  EditIcon,
+  InfoIcon,
+  InfoOutlineIcon,
 } from '@chakra-ui/icons'
 import JSZip from 'jszip'
 import Link from 'next/link'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
+import { DEFAULT_CODE_NOTE } from 'pages/[code]'
+
+function TitleControls() {
+  const {
+    isEditing,
+    getSubmitButtonProps,
+    getCancelButtonProps,
+    getEditButtonProps,
+  } = useEditableControls()
+
+  return isEditing ? (
+    <ButtonGroup justifyContent="center" size="sm">
+      <IconButton
+        variant={'unstyled'}
+        icon={<CheckIcon />}
+        {...(getSubmitButtonProps() as any)}
+      />
+      <IconButton
+        variant={'unstyled'}
+        icon={<CloseIcon />}
+        {...(getCancelButtonProps() as any)}
+      />
+    </ButtonGroup>
+  ) : (
+    <Flex justifyContent="center">
+      <IconButton
+        variant={'unstyled'}
+        size="sm"
+        icon={<EditIcon />}
+        {...(getEditButtonProps() as any)}
+      />
+    </Flex>
+  )
+}
 
 const QuestSettings: NextPage = () => {
   useRequireAuth()
@@ -73,8 +117,14 @@ const QuestSettings: NextPage = () => {
   }
   const [codesSaving, setCodesSaving] = useState<Record<string, boolean>>({})
 
+  type NewQuestData = Partial<{
+    completionNote: string
+  }>
+  const [newQuestData, updateQuest] = useState<NewQuestData | null>(null)
+  const [questSaving, setQuestSaving] = useState<boolean>(false)
+
   const [_refreshTrigger, _setRefreshTrigger] = useState(0)
-  const refreshQuest = () => _setRefreshTrigger(i => i + 1)
+  const refreshQuest = () => _setRefreshTrigger((i) => i + 1)
   useEffect(() => {
     if (user)
       axios
@@ -116,9 +166,13 @@ const QuestSettings: NextPage = () => {
     const zip = new JSZip()
 
     for (const i in quest!.codes) {
-      zip.file(`qr-${Number(i) + 1}-${quest!.codes[i].name || ''}.png`, quest!.codes[i].image.split(',')[1], {
-        base64: true,
-      })
+      zip.file(
+        `qr-${Number(i) + 1}-${quest!.codes[i].name || ''}.png`,
+        quest!.codes[i].image.split(',')[1],
+        {
+          base64: true,
+        }
+      )
     }
 
     const file = await zip.generateAsync({
@@ -153,7 +207,7 @@ const QuestSettings: NextPage = () => {
       toast({
         title: 'Note published',
         status: 'success',
-        duration: 1000
+        duration: 1000,
       })
     } catch (err) {
       console.error(err)
@@ -163,7 +217,7 @@ const QuestSettings: NextPage = () => {
       })
       // router.reload()
     } finally {
-      setCodesSaving((s) => ({ ...s, [slug]: false}))
+      setCodesSaving((s) => ({ ...s, [slug]: false }))
     }
   }
 
@@ -189,15 +243,23 @@ const QuestSettings: NextPage = () => {
     }
   }
 
-  const updateQuest = async (newData: { name?: string, enableConfetti?: boolean }) => {
+  const saveQuest = async (newData?: {
+    name?: string
+    enableConfetti?: boolean
+  }) => {
+    setQuestSaving(true)
     try {
       const res = await axios.post<UpdateQuestCodeResponse>(
         `/api/quest/${quest?.id}/update`,
         {
-          newData
+          newData: {
+            ...newData,
+            ...newQuestData,
+          },
         }
       )
       // refreshQuest()
+      updateQuest(null)
     } catch (err) {
       console.error(err)
       toast({
@@ -205,6 +267,8 @@ const QuestSettings: NextPage = () => {
         status: 'error',
       })
       // router.reload()
+    } finally {
+      setQuestSaving(false)
     }
   }
 
@@ -226,16 +290,92 @@ const QuestSettings: NextPage = () => {
               My quests
             </Button>
           </Link>
-          <Heading>{quest.name}</Heading>
+          <Heading>
+            <Editable
+              display={'flex'}
+              gridGap={'3'}
+              alignItems={'center'}
+              defaultValue={quest.name}
+              isPreviewFocusable={false}
+              onSubmit={(name) => saveQuest({ name })}
+            >
+              <EditablePreview />
+              <EditableInput />
+              <TitleControls />
+            </Editable>
+          </Heading>
 
-          <Box my="12">
-            <FormLabel display={'flex'} alignItems={'center'} gridGap={'2'}>
-              <Switch defaultChecked={quest.enableConfetti} colorScheme="yellow" size="lg" onChange={e => {
-                updateQuest({ enableConfetti: e.target.checked})
-              }} />
-              <Text as='span'>Enable Confetti</Text>
-            </FormLabel>
-          </Box>
+          <Flex my="12" direction={'column'} gridGap={'4'}>
+            <FormControl /*display={'flex'} alignItems={'center'} gridGap={'2'}*/
+            >
+              <FormLabel>
+                <Tooltip
+                  placement="auto-end"
+                  label="Show animated confetti to your questers when they find a code"
+                >
+                  <Text
+                    as="span"
+                    display={'inline-flex'}
+                    alignItems={'center'}
+                    gridGap={'1'}
+                  >
+                    Enable Confetti <InfoOutlineIcon />
+                  </Text>
+                </Tooltip>
+              </FormLabel>
+              <Switch
+                defaultChecked={quest.enableConfetti}
+                colorScheme="yellow"
+                size="lg"
+                onChange={(e) => {
+                  saveQuest({ enableConfetti: e.target.checked })
+                }}
+              />
+              <FormHelperText></FormHelperText>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>
+                <Tooltip
+                  placement="auto-end"
+                  label="Leave a note that will be displayed to your questers when they
+                find the last codes. WILL override any note set on the QR code."
+                >
+                  <Text
+                    as="span"
+                    display={'inline-flex'}
+                    alignItems={'center'}
+                    gridGap={'1'}
+                  >
+                    Completion Note <InfoOutlineIcon />
+                  </Text>
+                </Tooltip>
+              </FormLabel>
+              <Textarea
+                defaultValue={quest.completionNote || ''}
+                placeholder={DEFAULT_CODE_NOTE}
+                resize={'none'}
+                onChange={(e) =>
+                  updateQuest({ completionNote: e.target.value })
+                }
+              />
+
+              <FormHelperText></FormHelperText>
+            </FormControl>
+
+            {newQuestData && (
+              <div>
+                <Button
+                  colorScheme={'orange'}
+                  onClick={() => saveQuest()}
+                  isLoading={questSaving}
+                  loadingText="Saving..."
+                >
+                  Save
+                </Button>
+              </div>
+            )}
+          </Flex>
 
           <Box my="12">
             <Button
@@ -293,7 +433,7 @@ const QuestSettings: NextPage = () => {
                       p="0"
                       size="sm"
                       rows={2}
-                      placeholder="Leave a note for your hunters..."
+                      placeholder="Leave a note for your questers..."
                       resize={'none'}
                       onChange={(e) =>
                         updateCode(c.slug, { note: e.target.value })
@@ -304,7 +444,9 @@ const QuestSettings: NextPage = () => {
                     <Flex gridGap={'3'}>
                       <a
                         href={c.image}
-                        download={`qr-code-quest-${quest.id}_${i + 1} ${c.name || ''}`}
+                        download={`qr-code-quest-${quest.id}_${i + 1} ${
+                          c.name || ''
+                        }`}
                       >
                         <Button
                           colorScheme={'green'}

@@ -22,6 +22,8 @@ import axios from 'lib/axios'
 import { useRouter } from 'next/router'
 import { CreateResponse } from './api/quest/create'
 import { useToast } from 'lib/toast'
+import Link from 'next/link'
+import { ArrowBackIcon } from '@chakra-ui/icons'
 
 interface FormValues {
   name: string
@@ -59,6 +61,13 @@ const Create: NextPage = () => {
   return (
     <Layout>
       <Meta title="Create a Quest" />
+      <Link href="/quests">
+        <a>
+          <Button leftIcon={<ArrowBackIcon />} variant={'link'}>
+            My quests
+          </Button>
+        </a>
+      </Link>
       <Heading>Create a Quest</Heading>
       <form onSubmit={onSubmit}>
         <Flex

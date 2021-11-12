@@ -27,15 +27,17 @@ export default async function handler(
     return
   }
 
-  const { name, enableConfetti } = req.body.newData
+  const { name, enableConfetti, completionNote } = req.body.newData
 
   await prisma.quest.update({
     where: {
       id: quest.id,
     },
     data: {
-      name, enableConfetti
-    }
+      name,
+      enableConfetti,
+      completionNote,
+    },
   })
 
   res.json({
