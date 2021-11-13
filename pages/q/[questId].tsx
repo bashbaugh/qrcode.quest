@@ -32,6 +32,12 @@ import {
   useEditableControls,
   ButtonGroup,
   IconButton,
+  Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import { useRequireAuth } from 'lib/hooks'
@@ -55,7 +61,7 @@ import {
 import JSZip from 'jszip'
 import Link from 'next/link'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
-import { DEFAULT_CODE_NOTE } from 'pages/[code]'
+import { DEFAULT_COMPLETION_NOTE } from 'pages/[code]'
 
 function TitleControls() {
   const {
@@ -122,6 +128,9 @@ const QuestSettings: NextPage = () => {
   }>
   const [newQuestData, updateQuest] = useState<NewQuestData | null>(null)
   const [questSaving, setQuestSaving] = useState<boolean>(false)
+
+  const claimCodeInputRef = useRef<HTMLInputElement>(null)
+  const [claimCodeVal, setClaimCodeVal] = useState<string>()
 
   const [_refreshTrigger, _setRefreshTrigger] = useState(0)
   const refreshQuest = () => _setRefreshTrigger((i) => i + 1)
@@ -290,7 +299,7 @@ const QuestSettings: NextPage = () => {
               My quests
             </Button>
           </Link>
-          <Heading>
+          <Heading mb="4">
             <Editable
               display={'flex'}
               gridGap={'3'}
@@ -305,7 +314,54 @@ const QuestSettings: NextPage = () => {
             </Editable>
           </Heading>
 
-          <Flex my="12" direction={'column'} gridGap={'4'}>
+          <Flex
+            my="8"
+            direction={'column'}
+            p="4"
+            gridGap={'4'}
+            rounded="lg"
+            backgroundColor={'gray.50'}
+            shadow={'lg'}
+          >
+            <Text fontWeight={'bold'}>
+              {quest.claimCodes.length}{' '}
+              {quest.claimCodes.length === 1 ? 'person has' : 'people have'}{' '}
+              completed this quest
+            </Text>
+            <Flex gridGap={'4'} alignItems={'center'}>
+              <Text>Check a claim code:</Text>
+            <NumberInput
+              maxW={'32'}
+              precision={0}
+              max={999_999}
+              min={0}
+              ref={claimCodeInputRef}
+              onChange={v => setClaimCodeVal(v)}
+              on
+              variant={'flushed'}
+            >
+              <NumberInputField placeholder="003406" />
+            </NumberInput>
+            <Button size='sm' colorScheme={'green'} disabled={claimCodeVal?.replace('-', '')?.length !== 6} onClick={() => {
+              if (quest.claimCodes.map(c => c.code).includes(parseInt(claimCodeVal!))) {
+                toast({
+                  title: `That's a valid code`,
+                  status: 'success',
+                  duration: 2000
+                })
+              } else {
+                toast({
+                  title: `That code isn't valid`,
+                  status: 'warning',
+                  duration: 2000
+                })
+              }
+            }}>Check</Button>
+            </Flex>
+            
+          </Flex>
+
+          <Flex my="8" direction={'column'} gridGap={'4'}>
             <FormControl /*display={'flex'} alignItems={'center'} gridGap={'2'}*/
             >
               <FormLabel>
@@ -353,7 +409,7 @@ const QuestSettings: NextPage = () => {
               </FormLabel>
               <Textarea
                 defaultValue={quest.completionNote || ''}
-                placeholder={DEFAULT_CODE_NOTE}
+                placeholder={DEFAULT_COMPLETION_NOTE}
                 resize={'none'}
                 onChange={(e) =>
                   updateQuest({ completionNote: e.target.value })

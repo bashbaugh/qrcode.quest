@@ -26,8 +26,8 @@ export default async function handler(
       where: { slug },
       data: {
         scans: {
-          increment: 1
-        }
+          increment: 1,
+        },
       },
     })
 

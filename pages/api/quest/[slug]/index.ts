@@ -22,6 +22,10 @@ export interface GetQuestResponse {
       note: string | null
       url: string
     }>
+    claimCodes: Array<{
+      claimed: boolean
+      code: number
+    }>
   }
 }
 
@@ -44,6 +48,7 @@ export default async function handler(
           order: 'asc',
         },
       },
+      claimCodes: true,
     },
   })
 
@@ -76,6 +81,10 @@ export default async function handler(
       enableConfetti: quest.enableConfetti,
       completionNote: quest.completionNote,
       codes,
+      claimCodes: quest.claimCodes.map((c) => ({
+        code: c.code,
+        claimed: c.claimed,
+      })),
     },
   })
 }

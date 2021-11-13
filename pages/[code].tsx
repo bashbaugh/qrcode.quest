@@ -2,14 +2,21 @@ import type { NextPage, NextPageContext } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import { useRouter } from 'next/router'
-import { chakra, Heading, Skeleton, SkeletonText } from '@chakra-ui/react'
+import {
+  Button,
+  chakra,
+  Heading,
+  Skeleton,
+  SkeletonText,
+} from '@chakra-ui/react'
 import getCode from 'lib/getCode'
 import cookie from 'cookie'
 import { useEffect, useRef } from 'react'
 import ConfettiGenerator from 'confetti-js'
 import axios from 'lib/axios'
+import { ClaimResponse } from './api/claim'
 
-export const DEFAULT_CODE_NOTE = 'Congrats, you found all the codes!'
+export const DEFAULT_COMPLETION_NOTE = 'Congrats, you found all the codes!'
 
 interface CodePageProps {
   data:
@@ -19,7 +26,7 @@ interface CodePageProps {
     | {
         questDeleted: false
         slug: string
-        note: string
+        note?: string | null
         isFinalCode: boolean
         isNewCode: boolean
         codesFound: number
@@ -33,14 +40,15 @@ interface CodePageProps {
 const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const confettiCanvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
-  
+
   const testMode = !!router.query.testMode
 
   useEffect(() => {
     if (!data.questDeleted) {
-      if (!testMode) axios.post('/api/trackscan', {
-        slug: data.slug
-      })
+      if (!testMode)
+        axios.post('/api/trackscan', {
+          slug: data.slug,
+        })
 
       if (data.enableConfetti) {
         const confetti = new ConfettiGenerator({
@@ -61,15 +69,24 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
           respawn: true,
         })
         confetti.render()
-  
+
         return () => {
           confetti.clear()
         }
       }
     }
-
-    
   }, [])
+
+  const claimQuest = async () => {
+    if (data.questDeleted || testMode) return
+    const res = await axios.post<ClaimResponse>('/api/claim', {
+      slug: data.slug,
+    })
+
+    if (res.data.claimCode) {
+      alert(res.data.claimCode)
+    }
+  }
 
   return (
     <Layout>
@@ -89,6 +106,18 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
       {!data.questDeleted && (
         <>
           You found {data.codesFound} out of {data.totalCodes} codes!
+          <p>{data.note}</p>
+          {data.isFinalCode && (
+            <>
+              <p>{data.completionNote}</p>
+              <Button onClick={claimQuest}>Claim</Button>
+            </>
+          )}
+        </>
+      )}
+      {data.questDeleted && (
+        <>
+          <p>This quest has been deleted</p>
         </>
       )}
     </Layout>
@@ -97,9 +126,9 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
 
 export default QuestSettings
 
-const SCANED_CODES_COOKIE_NAME = 'sqrcs'
-const CLAIMED_QUESTS_COOKIE_NAME = 'clquests'
-const COOKIE_DELIMITER = ','
+export const SCANED_CODES_COOKIE_NAME = 'sqrcs'
+export const CLAIMED_QUESTS_COOKIE_NAME = 'clquests'
+export const COOKIE_DELIMITER = ','
 export async function getServerSideProps(ctx: NextPageContext) {
   if (typeof ctx.query.code !== 'string')
     return {
@@ -153,9 +182,11 @@ export async function getServerSideProps(ctx: NextPageContext) {
       totalCodes: code.quest.codes.length,
       questClaimed: false,
       enableConfetti: code.quest.enableConfetti,
-      note: code.note || DEFAULT_CODE_NOTE,
+      note: code.note,
       isFinalCode,
-      completionNote: isFinalCode ? code.quest.completionNote : undefined,
+      completionNote: isFinalCode
+        ? code.quest.completionNote || DEFAULT_COMPLETION_NOTE
+        : undefined,
     },
   }
 
