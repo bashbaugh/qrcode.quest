@@ -2,21 +2,20 @@ import type { NextPage, NextPageContext } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import { useRouter } from 'next/router'
-import {
-  Button,
-  chakra,
-  Heading,
-  Skeleton,
-  SkeletonText,
-} from '@chakra-ui/react'
+import { Badge, Box, Button, Flex, Heading, Tag, Text } from '@chakra-ui/react'
 import getCode from 'lib/getCode'
 import cookie from 'cookie'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ConfettiGenerator from 'confetti-js'
 import axios from 'lib/axios'
 import { ClaimResponse } from './api/claim'
+import { useToast } from 'lib/toast'
+import { InfoIcon } from '@chakra-ui/icons'
+import { Quest } from '@prisma/client'
 
 export const DEFAULT_COMPLETION_NOTE = 'Congrats, you found all the codes!'
+
+export const CLAIM_CODE_LENGTH = 5
 
 interface CodePageProps {
   data:
@@ -28,13 +27,14 @@ interface CodePageProps {
         slug: string
         note?: string | null
         isFinalCode: boolean
+        isFirstCode: boolean
         isNewCode: boolean
         codesFound: number
         totalCodes: number
         questClaimed: boolean
         enableConfetti: boolean
         completionNote: string | null
-        enableClaimCodes: boolean
+        victoryFulfillment: Quest['victoryFulfillment']
         enableQuest: boolean
       }
 }
@@ -42,20 +42,36 @@ interface CodePageProps {
 const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const confettiCanvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
+  const [claiming, setClaiming] = useState(false)
+  const [claimNotAllowed, setClaimNoteAllowed] = useState(false)
+  const [claimCode, setClaimCode] = useState<string>()
+  const [alreadyClaimed, setAlreadyClaimed] = useState(false)
+  const toast = useToast()
 
   const testMode = !!router.query.testMode
 
   useEffect(() => {
     if (!data.questDeleted) {
+      const questAlreadyClaimed = document.cookie
+        ?.split('; ')
+        ?.find((row) => row.startsWith(CLAIMED_QUESTS_COOKIE_NAME + '='))
+        ?.split('=')[1]
+        .split(COOKIE_DELIMITER)
+        .includes(data.slug)
+
+      if (questAlreadyClaimed) setAlreadyClaimed(true)
+
       if (!testMode)
+        // Track the scan and mark this as a completion if it's the final code.
         axios.post('/api/trackscan', {
           slug: data.slug,
+          completed: data.isNewCode && data.isFinalCode
         })
 
-      if (data.enableConfetti) {
+      if (data.enableConfetti && data.isFinalCode) {
         const confetti = new ConfettiGenerator({
           target: confettiCanvasRef.current,
-          max: '300',
+          max: '100',
           size: '1',
           animate: true,
           props: ['circle', 'square', 'triangle', 'line'],
@@ -65,7 +81,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
             [0, 199, 228],
             [253, 214, 126],
           ],
-          clock: '20',
+          clock: '16',
           rotate: true,
           start_from_edge: false,
           respawn: true,
@@ -80,13 +96,32 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   }, [])
 
   const claimQuest = async () => {
-    if (data.questDeleted || testMode) return
-    const res = await axios.post<ClaimResponse>('/api/claim', {
-      slug: data.slug,
-    })
+    if (data.questDeleted || testMode) {
+      toast({
+        title: `You can't claim a quest in test mode. Try scanning the QR codes.`,
+      })
+      return
+    }
+    setClaiming(true)
+    try {
+      const res = await axios.post<ClaimResponse>('/api/claim', {
+        slug: data.slug,
+      })
 
-    if (res.data.claimCode) {
-      alert(res.data.claimCode)
+      if (res.data.claimCode) {
+        let codeString = res.data.claimCode.toString()
+        for (let i = 0; i < CLAIM_CODE_LENGTH - codeString.length; i++)
+          codeString = '0' + codeString
+        setClaimCode(codeString)
+      } else if (res.data.notAllowed) setClaimNoteAllowed(true)
+    } catch (err) {
+      console.log(err)
+      toast({
+        title: `Please try again`,
+        status: 'error',
+      })
+    } finally {
+      setClaiming(false)
     }
   }
 
@@ -104,29 +139,132 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
           zIndex: -1,
         }}
       />
-      {/* {data.questClaimed && 'You have already claimed this quest.'} */}
-      {!data.questDeleted && (data.enableQuest || testMode) && (
-        <>
-          You found {data.codesFound} out of {data.totalCodes} codes!
-          <p>{data.note}</p>
-          {data.isFinalCode && (
+      <Flex
+        sx={{
+          flexDirection: 'column',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          minHeight: '100vh',
+          w: '100%',
+          justifyContent: 'center',
+          p: '4',
+        }}
+      >
+        <Box>
+          {!data.questDeleted && (data.enableQuest || testMode) && (
             <>
-              <p>{data.completionNote}</p>
-              <Button onClick={claimQuest}>Claim</Button>
+              <Flex
+                w="full"
+                gridGap={'6'}
+                direction="column"
+                alignItems={'center'}
+              >
+                <Heading
+                  size="lg"
+                  bgGradient="linear(to-l, #7928CA, #FF0080)"
+                  bgClip="text"
+                >
+                  {!data.isFinalCode && 'You found a secret code!'}
+                  {data.isFinalCode && 'You found all the codes!'}
+                </Heading>
+                {!data.isNewCode && !data.isFinalCode && (
+                  <Text fontSize="sm">(but you already found this one)</Text>
+                )}
+                {!data.isFinalCode && (
+                  <Text fontWeight={'bold'}>
+                    There are{' '}
+                    <Badge colorScheme={'purple'} fontSize={'lg'}>
+                      {data.totalCodes - data.codesFound}
+                    </Badge>{' '}
+                    codes left to scan 🎉
+                  </Text>
+                )}
+                {data.isFinalCode && <Text fontWeight={'bold'}>Nice job!</Text>}
+                {data.note ||
+                  (data.isFinalCode && (
+                    <Box
+                      p="4"
+                      border="1px"
+                      borderColor={'violet'}
+                      rounded="lg"
+                      shadow="xl"
+                      backgroundColor={'white'}
+                      opacity={'0.8'}
+                    >
+                      <Text fontSize={'md'} textAlign={'center'}>
+                        {data.isFinalCode && data.completionNote
+                          ? data.completionNote
+                          : data.note ||
+                            (data.isFinalCode ? DEFAULT_COMPLETION_NOTE : '')}
+                      </Text>
+                    </Box>
+                  ))}
+                {data.isFinalCode && data.victoryFulfillment === 'CLAIM_CODE' && (
+                  <>
+                    {!claimCode && !claimNotAllowed && !alreadyClaimed && (
+                      <Button
+                        onClick={claimQuest}
+                        bgGradient="linear(to-l, #7928CA, #FF0080)"
+                        color="white"
+                        _hover={{
+                          bgGradient: 'linear(to-l, #7928CA, #FF0080)',
+                        }}
+                        _active={{
+                          bgGradient: 'linear(to-l, #7928CA, #FF0080)',
+                        }}
+                        isLoading={claiming}
+                        loadingText="Please wait"
+                      >
+                        Claim Victory
+                      </Button>
+                    )}
+                    {claimCode && (
+                      <>
+                        <Text
+                          fontWeight={'bold'}
+                          textAlign={'center'}
+                          fontSize={'sm'}
+                          rounded={'md'}
+                          backgroundColor={'white'}
+                        >
+                          <InfoIcon /> Copy this code down and send it to the
+                          creator of this quest. You won't be able to access it
+                          again.
+                        </Text>
+                        <Tag colorScheme={'purple'} size="lg" fontSize={'4xl'}>
+                          {claimCode}
+                        </Tag>
+                      </>
+                    )}
+                    {claimNotAllowed && (
+                      <Text textAlign={'center'}>
+                        Sorry, you aren't allowed to claim this quest. Maybe you
+                        already claimed it?
+                      </Text>
+                    )}
+                  </>
+                )}
+                {data.isFinalCode && data.victoryFulfillment === 'COLLECT_EMAIL' && (
+                  <>
+                    <Text>Email collections coming soon.</Text>
+                  </>
+                )}
+              </Flex>
             </>
           )}
-        </>
-      )}
-      {data.questDeleted && (
-        <>
-          <p>This quest has been deleted</p>
-        </>
-      )}
-      {!data.questDeleted && !data.enableQuest && !testMode && (
-        <>
-          <p>This quest is not active right now. Please try again later.</p>
-        </>
-      )}
+          {data.questDeleted && (
+            <>
+              <p>This quest has been deleted</p>
+            </>
+          )}
+          {!data.questDeleted && !data.enableQuest && !testMode && (
+            <>
+              <p>This quest is not active right now. Please try again later.</p>
+            </>
+          )}
+        </Box>
+      </Flex>
     </Layout>
   )
 }
@@ -174,6 +312,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
   }
 
   const isFinalCode = codesFound === code.quest.codes.length
+  const isFirstCode = codesFound === 1
 
   const newCodesString = Array.from(scannedCodes).join(COOKIE_DELIMITER)
 
@@ -194,11 +333,10 @@ export async function getServerSideProps(ctx: NextPageContext) {
       enableConfetti: code.quest.enableConfetti,
       note: code.note,
       isFinalCode,
-      enableClaimCodes: code.quest.enableClaimCodes,
+      isFirstCode,
+      victoryFulfillment: code.quest.victoryFulfillment,
       enableQuest: code.quest.enableQuest,
-      completionNote: isFinalCode
-        ? code.quest.completionNote || DEFAULT_COMPLETION_NOTE
-        : null,
+      completionNote: isFinalCode ? code.quest.completionNote : null,
     },
   }
 

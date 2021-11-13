@@ -17,19 +17,28 @@ model User {
 }
 
 model Quest {
-  id          Int         @id @default(autoincrement())
-  slug        String      @unique
-  user        User        @relation(fields: [userId], references: [uid])
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  user        User     @relation(fields: [userId], references: [uid])
   userId      String
-  createdDate DateTime    @default(now())
+  createdDate DateTime @default(now())
   name        String
   codes       Code[]
-  claimCodes  ClaimCode[]
 
-  enableQuest      Boolean @default(true)
-  enableClaimCodes Boolean @default(true)
-  enableConfetti   Boolean @default(false)
-  completionNote   String  @default("")
+  claimCodes  ClaimCode[]
+  claimEmails ClaimEmail[]
+
+  enableQuest        Boolean                @default(true)
+  victoryFulfillment VictoryFulfillmentType @default(CLAIM_CODE)
+  enableConfetti     Boolean                @default(true)
+  completionNote     String                 @default("")
+
+  completionsCount Int @default(0)
+}
+
+enum VictoryFulfillmentType {
+  CLAIM_CODE
+  COLLECT_EMAIL
 }
 
 model Code {
@@ -47,6 +56,18 @@ model ClaimCode {
   id      Int     @id @default(autoincrement())
   code    Int
   claimed Boolean
-  quest   Quest?  @relation(fields: [questId], references: [id])
-  questId Int?
+  quest   Quest   @relation(fields: [questId], references: [id])
+  questId Int
+
+  // Codes must be unique per quest
+  @@unique([questId, code])
+}
+
+model ClaimEmail {
+  id      Int    @id @default(autoincrement())
+  email   String
+  quest   Quest  @relation(fields: [questId], references: [id])
+  questId Int
+
+  @@unique([questId, email])
 }

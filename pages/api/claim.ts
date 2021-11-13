@@ -14,10 +14,14 @@ const prisma = new PrismaClient()
 
 export interface ClaimResponse {
   notAllowed?: boolean
+  notAllowedReason?: string
   claimCode?: number
 }
 
-const returnNotAllowed = (res: NextApiResponse<ClaimResponse>) => {
+const returnNotAllowed = (
+  res: NextApiResponse<ClaimResponse>,
+  reason?: string
+) => {
   res.json({
     notAllowed: true,
   })
@@ -60,7 +64,7 @@ export default async function handler(
 
   const claim = await prisma.claimCode.create({
     data: {
-      code: randomInt(0, 999_999),
+      code: randomInt(0, 99_999),
       claimed: false,
       questId: code.quest.id,
     },

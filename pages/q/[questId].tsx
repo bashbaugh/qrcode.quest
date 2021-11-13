@@ -38,6 +38,13 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Select,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import { useRequireAuth } from 'lib/hooks'
@@ -61,7 +68,8 @@ import {
 import JSZip from 'jszip'
 import Link from 'next/link'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
-import { DEFAULT_COMPLETION_NOTE } from 'pages/[code]'
+import { CLAIM_CODE_LENGTH, DEFAULT_COMPLETION_NOTE } from 'pages/[code]'
+import { Quest } from '@prisma/client'
 
 function TitleControls() {
   const {
@@ -129,10 +137,8 @@ const QuestSettings: NextPage = () => {
   const [newQuestData, updateQuest] = useState<NewQuestData | null>(null)
   const [questSaving, setQuestSaving] = useState<boolean>(false)
 
-  const claimCodeInputRef = useRef<HTMLInputElement>(null)
   const [claimCodeVal, setClaimCodeVal] = useState<string>()
-
-  const [claimCodesEnabled, setClaimCodesEnabled] = useState<boolean>()
+  const [victoryType, setVictoryType] = useState<Quest['victoryFulfillment']>()
 
   const [_refreshTrigger, _setRefreshTrigger] = useState(0)
   const refreshQuest = () => _setRefreshTrigger((i) => i + 1)
@@ -142,7 +148,7 @@ const QuestSettings: NextPage = () => {
         .get<GetQuestResponse>('/api/quest/' + router.query.questId)
         .then((res) => {
           setQuestData(res.data.quest)
-          setClaimCodesEnabled(res.data.quest?.enableClaimCodes)
+          setVictoryType(res.data.quest?.victoryFulfillment)
           if (res.data.notFound) {
             router.push('/quests')
             toast({
@@ -259,7 +265,7 @@ const QuestSettings: NextPage = () => {
     name?: string
     enableConfetti?: boolean
     enableQuest?: boolean
-    enableClaimCodes?: boolean
+    victoryFulfillment?: Quest['victoryFulfillment']
   }) => {
     setQuestSaving(true)
     try {
@@ -283,6 +289,36 @@ const QuestSettings: NextPage = () => {
       // router.reload()
     } finally {
       setQuestSaving(false)
+    }
+  }
+
+  const checkClaimCode = () => {
+    const code = quest!.claimCodes.find(
+      (c) => c.code === parseInt(claimCodeVal!)
+    )
+
+    if (code && !code.claimed) {
+      toast({
+        title: `That's a valid code`,
+        status: 'success',
+        duration: 2000,
+      })
+
+      axios.post('/api/markclaimed', {
+        codeId: code.id,
+      })
+    } else if (code) {
+      toast({
+        title: `That's a valid code, but it's already been claimed`,
+        status: 'warning',
+        duration: 2000,
+      })
+    } else {
+      toast({
+        title: `That code isn't valid`,
+        status: 'warning',
+        duration: 2000,
+      })
     }
   }
 
@@ -329,52 +365,60 @@ const QuestSettings: NextPage = () => {
             shadow={'lg'}
           >
             <Text fontWeight={'bold'}>
-              {quest.claimCodes.length}{' '}
-              {quest.claimCodes.length === 1 ? 'person has' : 'people have'}{' '}
+              {quest.completionsCount}{' '}
+              {quest.completionsCount === 1 ? 'person has' : 'people have'}{' '}
               completed this quest
             </Text>
-            {claimCodesEnabled && (
+            {victoryType === 'CLAIM_CODE' && (
               <Flex gridGap={'4'} alignItems={'center'}>
                 <Text>Check a quest claim code:</Text>
                 <NumberInput
                   maxW={'32'}
                   precision={0}
-                  max={999_999}
+                  max={99_999}
                   min={0}
-                  ref={claimCodeInputRef}
+                  // ref={claimCodeInputRef}
                   onChange={(v) => setClaimCodeVal(v)}
                   on
                   variant={'flushed'}
                 >
-                  <NumberInputField placeholder="003406" />
+                  <NumberInputField placeholder="00340" />
                 </NumberInput>
                 <Button
                   size="sm"
                   colorScheme={'green'}
-                  disabled={claimCodeVal?.replace('-', '')?.length !== 6}
-                  onClick={() => {
-                    if (
-                      quest.claimCodes
-                        .map((c) => c.code)
-                        .includes(parseInt(claimCodeVal!))
-                    ) {
-                      toast({
-                        title: `That's a valid code`,
-                        status: 'success',
-                        duration: 2000,
-                      })
-                    } else {
-                      toast({
-                        title: `That code isn't valid`,
-                        status: 'warning',
-                        duration: 2000,
-                      })
-                    }
-                  }}
+                  disabled={
+                    claimCodeVal?.replace('-', '')?.length !== CLAIM_CODE_LENGTH
+                  }
+                  onClick={checkClaimCode}
                 >
-                  Check
+                  Mark claimed
                 </Button>
               </Flex>
+            )}
+            {victoryType === 'COLLECT_EMAIL' && (
+              <>
+                <Heading size="md">Victors</Heading>
+                {!quest.claimEmails.length && (
+                  <Text fontSize={'sm'}>No emails collected yet.</Text>
+                )}
+                {quest.claimEmails.length ? (
+                  <Table size="sm" maxH="44" overflowY={'auto'}>
+                    <Thead>
+                      <Tr>
+                        <Th>Email</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {quest.claimEmails.map((e) => (
+                        <Tr>
+                          <Td>{e.email}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                ) : null}
+              </>
             )}
           </Flex>
 
@@ -409,33 +453,7 @@ const QuestSettings: NextPage = () => {
                 <FormLabel>
                   <Tooltip
                     placement="auto-end"
-                    label="Give questers a secret code when they finish the quest that can be used to verify that they completed it."
-                  >
-                    <Text
-                      as="span"
-                      display={'inline-flex'}
-                      alignItems={'center'}
-                      gridGap={'1'}
-                    >
-                      Enable Victory Codes <InfoOutlineIcon />
-                    </Text>
-                  </Tooltip>
-                </FormLabel>
-                <Switch
-                  defaultChecked={quest.enableClaimCodes}
-                  colorScheme="yellow"
-                  size="lg"
-                  onChange={(e) => {
-                    setClaimCodesEnabled(e.target.checked)
-                    saveQuest({ enableClaimCodes: e.target.checked })
-                  }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>
-                  <Tooltip
-                    placement="auto-end"
-                    label="Show animated confetti to your questers when they find a code"
+                    label="Show animated confetti to your questers when they reach the final code"
                   >
                     <Text
                       as="span"
@@ -457,6 +475,46 @@ const QuestSettings: NextPage = () => {
                 />
               </FormControl>
             </Flex>
+
+            <FormControl>
+              <FormLabel>
+                <Tooltip
+                  placement="auto-end"
+                  label={
+                    <>
+                      <p>
+                        Claim codes: give questers a unique code when they scan
+                        the last QR code that you can use to verify that they
+                        completed it.
+                      </p>
+                      <p>
+                        Collect emails: Ask users for their emails, which will
+                        then be shared with you.
+                      </p>
+                    </>
+                  }
+                >
+                  <Text
+                    as="span"
+                    display={'inline-flex'}
+                    alignItems={'center'}
+                    gridGap={'1'}
+                  >
+                    Victory tracking method <InfoOutlineIcon />
+                  </Text>
+                </Tooltip>
+              </FormLabel>
+              <Select
+                defaultValue={quest.victoryFulfillment}
+                onChange={(e) => {
+                  saveQuest({ victoryFulfillment: e.target.value as any })
+                  setVictoryType(e.target.value as any)
+                }}
+              >
+                <option value="CLAIM_CODE">Claim codes</option>
+                <option value="COLLECT_EMAIL">Collect emails</option>
+              </Select>
+            </FormControl>
 
             <FormControl>
               <FormLabel>

@@ -31,7 +31,7 @@ export default async function handler(
     name,
     enableConfetti,
     completionNote,
-    enableClaimCodes,
+    victoryFulfillment,
     enableQuest,
   } = req.body.newData
 
@@ -44,7 +44,7 @@ export default async function handler(
       enableConfetti,
       completionNote,
       enableQuest,
-      enableClaimCodes,
+      victoryFulfillment,
     },
   })
 

@@ -13,7 +13,7 @@ const Meta: React.FC<{
   image = url + '/img/og/basic.png',
   children,
 }) => {
-  const title = pageTitle ? `${pageTitle} * ${name} 🔍` : name
+  const title = pageTitle ? `${pageTitle} 📱 ${name} 🔍` : name
 
   return (
     <Head>

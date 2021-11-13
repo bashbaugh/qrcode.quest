@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client'
+import { Code, PrismaClient, Quest } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { requireAuth } from 'lib/apiAuth'
 import { getQrCode } from 'lib/qr'
@@ -15,7 +15,8 @@ export interface GetQuestResponse {
     enableConfetti: boolean
     completionNote: string
     enableQuest: boolean
-    enableClaimCodes: boolean
+    victoryFulfillment: Quest['victoryFulfillment']
+    completionsCount: number
     codes: Array<{
       slug: string
       scans: number
@@ -25,8 +26,12 @@ export interface GetQuestResponse {
       url: string
     }>
     claimCodes: Array<{
+      id: number
       claimed: boolean
       code: number
+    }>
+    claimEmails: Array<{
+      email: string
     }>
   }
 }
@@ -51,6 +56,7 @@ export default async function handler(
         },
       },
       claimCodes: true,
+      claimEmails: true,
     },
   })
 
@@ -83,11 +89,16 @@ export default async function handler(
       enableConfetti: quest.enableConfetti,
       completionNote: quest.completionNote,
       codes,
-      enableClaimCodes: quest.enableClaimCodes,
+      victoryFulfillment: quest.victoryFulfillment,
       enableQuest: quest.enableQuest,
+      completionsCount: quest.completionsCount,
       claimCodes: quest.claimCodes.map((c) => ({
+        id: c.id,
         code: c.code,
         claimed: c.claimed,
+      })),
+      claimEmails: quest.claimEmails.map((e) => ({
+        email: e.email,
       })),
     },
   })
