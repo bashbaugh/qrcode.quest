@@ -44,7 +44,7 @@ const Create: NextPage = () => {
     try {
       const res = await axios.post<CreateResponse>('/api/quest/create', {
         name: data.name,
-        steps: parseInt(numberOfStepsRef.current?.value),
+        steps: parseInt(numberOfStepsRef.current?.value!),
       })
 
       router.replace(`/q/${res.data.quest.id}`)
