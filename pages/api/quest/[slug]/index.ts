@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Code, PrismaClient, Quest } from '@prisma/client'
 import { requireAuth } from 'lib/apiAuth'
-import { getQrCode } from 'lib/qr'
+// import { getQrCode } from 'lib/qr'
 
 const prisma = new PrismaClient()
 
@@ -67,7 +67,7 @@ export default async function handler(
     return
   }
 
-  const images = await Promise.all(quest.codes.map((c) => getQrCode(c.slug)))
+  const images = await Promise.all(quest.codes.map((c) => (async () => 'howds')()))
 
   const codes = quest.codes.map((c, i) => ({
     slug: c.slug,
