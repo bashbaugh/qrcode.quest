@@ -10,6 +10,7 @@ import {
   Grid,
   Box,
   Skeleton,
+  Text,
 } from '@chakra-ui/react'
 import { signOut, getAuth } from '@firebase/auth'
 import { useRouter } from 'next/router'
@@ -20,6 +21,7 @@ import { useGlobalState } from 'lib/state'
 import { GetQuestsResponse } from './api/getquests'
 import axios from 'lib/axios'
 import create from 'zustand'
+import { AddIcon, PlusSquareIcon } from '@chakra-ui/icons'
 
 const useQuests = create<{
   quests: GetQuestsResponse['quests']
@@ -71,16 +73,38 @@ const Hunts: NextPage = () => {
           <>
             <Link href="/create">
               <a>
-                <Box backgroundColor={'gray.100'} rounded={'xl'} p="8">
-                  Add
+                <Box
+                  backgroundColor={'gray.100'}
+                  rounded={'xl'}
+                  p="8"
+                  _hover={{ shadow: 'lg' }}
+                  transition={'all'}
+                  transitionDuration={'200ms'}
+                >
+                  <Flex
+                    alignItems={'center'}
+                    gridGap={'4'}
+                    justifyContent={'center'}
+                  >
+                    <AddIcon />
+                    <Text fontWeight={'bold'}>New Quest</Text>
+                  </Flex>
                 </Box>
               </a>
             </Link>
             {quests?.map((q) => (
               <Link key={q.id} href={`/q/${q.id}`}>
                 <a>
-                  <Box backgroundColor={'gray.100'} rounded={'xl'} p="8">
-                    {q.name}
+                  <Box
+                    backgroundColor={'gray.100'}
+                    rounded={'xl'}
+                    p="8"
+                    _hover={{ shadow: 'lg' }}
+                    transition={'all'}
+                    transitionDuration={'200ms'}
+                    textAlign={'center'}
+                  >
+                    <Text>{q.name}</Text>
                   </Box>
                 </a>
               </Link>

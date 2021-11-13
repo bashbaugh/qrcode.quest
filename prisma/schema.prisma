@@ -26,8 +26,10 @@ model Quest {
   codes       Code[]
   claimCodes  ClaimCode[]
 
-  enableConfetti Boolean @default(false)
-  completionNote String  @default("")
+  enableQuest      Boolean @default(true)
+  enableClaimCodes Boolean @default(true)
+  enableConfetti   Boolean @default(false)
+  completionNote   String  @default("")
 }
 
 model Code {

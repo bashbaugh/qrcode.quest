@@ -33,7 +33,9 @@ interface CodePageProps {
         totalCodes: number
         questClaimed: boolean
         enableConfetti: boolean
-        completionNote?: string
+        completionNote: string | null
+        enableClaimCodes: boolean
+        enableQuest: boolean
       }
 }
 
@@ -103,7 +105,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
         }}
       />
       {/* {data.questClaimed && 'You have already claimed this quest.'} */}
-      {!data.questDeleted && (
+      {!data.questDeleted && (data.enableQuest || testMode) && (
         <>
           You found {data.codesFound} out of {data.totalCodes} codes!
           <p>{data.note}</p>
@@ -118,6 +120,11 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
       {data.questDeleted && (
         <>
           <p>This quest has been deleted</p>
+        </>
+      )}
+      {!data.questDeleted && !data.enableQuest && !testMode && (
+        <>
+          <p>This quest is not active right now. Please try again later.</p>
         </>
       )}
     </Layout>
@@ -169,9 +176,12 @@ export async function getServerSideProps(ctx: NextPageContext) {
   const isFinalCode = codesFound === code.quest.codes.length
 
   const newCodesString = Array.from(scannedCodes).join(COOKIE_DELIMITER)
-  ctx.res?.setHeader('Set-Cookie', [
-    SCANED_CODES_COOKIE_NAME + '=' + newCodesString,
-  ])
+
+  // Only set the cookie if the quest is enabled
+  if (code.quest.enableQuest)
+    ctx.res?.setHeader('Set-Cookie', [
+      SCANED_CODES_COOKIE_NAME + '=' + newCodesString,
+    ])
 
   const props: CodePageProps = {
     data: {
@@ -184,9 +194,11 @@ export async function getServerSideProps(ctx: NextPageContext) {
       enableConfetti: code.quest.enableConfetti,
       note: code.note,
       isFinalCode,
+      enableClaimCodes: code.quest.enableClaimCodes,
+      enableQuest: code.quest.enableQuest,
       completionNote: isFinalCode
         ? code.quest.completionNote || DEFAULT_COMPLETION_NOTE
-        : undefined,
+        : null,
     },
   }
 

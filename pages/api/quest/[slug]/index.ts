@@ -14,6 +14,8 @@ export interface GetQuestResponse {
     name: string
     enableConfetti: boolean
     completionNote: string
+    enableQuest: boolean
+    enableClaimCodes: boolean
     codes: Array<{
       slug: string
       scans: number
@@ -81,6 +83,8 @@ export default async function handler(
       enableConfetti: quest.enableConfetti,
       completionNote: quest.completionNote,
       codes,
+      enableClaimCodes: quest.enableClaimCodes,
+      enableQuest: quest.enableQuest,
       claimCodes: quest.claimCodes.map((c) => ({
         code: c.code,
         claimed: c.claimed,

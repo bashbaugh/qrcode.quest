@@ -132,6 +132,8 @@ const QuestSettings: NextPage = () => {
   const claimCodeInputRef = useRef<HTMLInputElement>(null)
   const [claimCodeVal, setClaimCodeVal] = useState<string>()
 
+  const [claimCodesEnabled, setClaimCodesEnabled] = useState<boolean>()
+
   const [_refreshTrigger, _setRefreshTrigger] = useState(0)
   const refreshQuest = () => _setRefreshTrigger((i) => i + 1)
   useEffect(() => {
@@ -140,6 +142,7 @@ const QuestSettings: NextPage = () => {
         .get<GetQuestResponse>('/api/quest/' + router.query.questId)
         .then((res) => {
           setQuestData(res.data.quest)
+          setClaimCodesEnabled(res.data.quest?.enableClaimCodes)
           if (res.data.notFound) {
             router.push('/quests')
             toast({
@@ -255,6 +258,8 @@ const QuestSettings: NextPage = () => {
   const saveQuest = async (newData?: {
     name?: string
     enableConfetti?: boolean
+    enableQuest?: boolean
+    enableClaimCodes?: boolean
   }) => {
     setQuestSaving(true)
     try {
@@ -328,67 +333,130 @@ const QuestSettings: NextPage = () => {
               {quest.claimCodes.length === 1 ? 'person has' : 'people have'}{' '}
               completed this quest
             </Text>
-            <Flex gridGap={'4'} alignItems={'center'}>
-              <Text>Check a claim code:</Text>
-            <NumberInput
-              maxW={'32'}
-              precision={0}
-              max={999_999}
-              min={0}
-              ref={claimCodeInputRef}
-              onChange={v => setClaimCodeVal(v)}
-              on
-              variant={'flushed'}
-            >
-              <NumberInputField placeholder="003406" />
-            </NumberInput>
-            <Button size='sm' colorScheme={'green'} disabled={claimCodeVal?.replace('-', '')?.length !== 6} onClick={() => {
-              if (quest.claimCodes.map(c => c.code).includes(parseInt(claimCodeVal!))) {
-                toast({
-                  title: `That's a valid code`,
-                  status: 'success',
-                  duration: 2000
-                })
-              } else {
-                toast({
-                  title: `That code isn't valid`,
-                  status: 'warning',
-                  duration: 2000
-                })
-              }
-            }}>Check</Button>
-            </Flex>
-            
+            {claimCodesEnabled && (
+              <Flex gridGap={'4'} alignItems={'center'}>
+                <Text>Check a quest claim code:</Text>
+                <NumberInput
+                  maxW={'32'}
+                  precision={0}
+                  max={999_999}
+                  min={0}
+                  ref={claimCodeInputRef}
+                  onChange={(v) => setClaimCodeVal(v)}
+                  on
+                  variant={'flushed'}
+                >
+                  <NumberInputField placeholder="003406" />
+                </NumberInput>
+                <Button
+                  size="sm"
+                  colorScheme={'green'}
+                  disabled={claimCodeVal?.replace('-', '')?.length !== 6}
+                  onClick={() => {
+                    if (
+                      quest.claimCodes
+                        .map((c) => c.code)
+                        .includes(parseInt(claimCodeVal!))
+                    ) {
+                      toast({
+                        title: `That's a valid code`,
+                        status: 'success',
+                        duration: 2000,
+                      })
+                    } else {
+                      toast({
+                        title: `That code isn't valid`,
+                        status: 'warning',
+                        duration: 2000,
+                      })
+                    }
+                  }}
+                >
+                  Check
+                </Button>
+              </Flex>
+            )}
           </Flex>
 
           <Flex my="8" direction={'column'} gridGap={'4'}>
-            <FormControl /*display={'flex'} alignItems={'center'} gridGap={'2'}*/
-            >
-              <FormLabel>
-                <Tooltip
-                  placement="auto-end"
-                  label="Show animated confetti to your questers when they find a code"
-                >
-                  <Text
-                    as="span"
-                    display={'inline-flex'}
-                    alignItems={'center'}
-                    gridGap={'1'}
+            <Flex gridGap={'5'}>
+              <FormControl>
+                <FormLabel>
+                  <Tooltip
+                    placement="auto-end"
+                    label="Allow questers to scan your QR codes"
                   >
-                    Enable Confetti <InfoOutlineIcon />
-                  </Text>
-                </Tooltip>
-              </FormLabel>
-              <Switch
-                defaultChecked={quest.enableConfetti}
-                colorScheme="yellow"
-                size="lg"
-                onChange={(e) => {
-                  saveQuest({ enableConfetti: e.target.checked })
-                }}
-              />
-              <FormHelperText></FormHelperText>
-            </FormControl>
+                    <Text
+                      as="span"
+                      display={'inline-flex'}
+                      alignItems={'center'}
+                      gridGap={'1'}
+                    >
+                      Enable Quest <InfoOutlineIcon />
+                    </Text>
+                  </Tooltip>
+                </FormLabel>
+                <Switch
+                  defaultChecked={quest.enableQuest}
+                  colorScheme="yellow"
+                  size="lg"
+                  onChange={(e) => {
+                    saveQuest({ enableQuest: e.target.checked })
+                  }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>
+                  <Tooltip
+                    placement="auto-end"
+                    label="Give questers a secret code when they finish the quest that can be used to verify that they completed it."
+                  >
+                    <Text
+                      as="span"
+                      display={'inline-flex'}
+                      alignItems={'center'}
+                      gridGap={'1'}
+                    >
+                      Enable Victory Codes <InfoOutlineIcon />
+                    </Text>
+                  </Tooltip>
+                </FormLabel>
+                <Switch
+                  defaultChecked={quest.enableClaimCodes}
+                  colorScheme="yellow"
+                  size="lg"
+                  onChange={(e) => {
+                    setClaimCodesEnabled(e.target.checked)
+                    saveQuest({ enableClaimCodes: e.target.checked })
+                  }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>
+                  <Tooltip
+                    placement="auto-end"
+                    label="Show animated confetti to your questers when they find a code"
+                  >
+                    <Text
+                      as="span"
+                      display={'inline-flex'}
+                      alignItems={'center'}
+                      gridGap={'1'}
+                    >
+                      Enable Confetti <InfoOutlineIcon />
+                    </Text>
+                  </Tooltip>
+                </FormLabel>
+                <Switch
+                  defaultChecked={quest.enableConfetti}
+                  colorScheme="yellow"
+                  size="lg"
+                  onChange={(e) => {
+                    saveQuest({ enableConfetti: e.target.checked })
+                  }}
+                />
+              </FormControl>
+            </Flex>
 
             <FormControl>
               <FormLabel>
@@ -415,8 +483,6 @@ const QuestSettings: NextPage = () => {
                   updateQuest({ completionNote: e.target.value })
                 }
               />
-
-              <FormHelperText></FormHelperText>
             </FormControl>
 
             {newQuestData && (
