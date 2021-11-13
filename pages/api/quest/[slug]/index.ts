@@ -1,7 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Code, PrismaClient, Quest } from '@prisma/client'
-import { nanoid } from 'nanoid'
 import { requireAuth } from 'lib/apiAuth'
 import { getQrCode } from 'lib/qr'
 
