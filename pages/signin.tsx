@@ -3,12 +3,10 @@ import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import {
   getAuth,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult,
+  GithubAuthProvider,
   GoogleAuthProvider,
-  signInWithRedirect,
   signInWithPopup,
+  TwitterAuthProvider,
 } from 'firebase/auth'
 import { useEffect, useState } from 'react'
 import {
@@ -27,6 +25,8 @@ import {
 import { useRouter } from 'next/router'
 
 const googleProvider = new GoogleAuthProvider()
+const twitterProvider = new TwitterAuthProvider()
+const githubProvider = new GithubAuthProvider()
 
 import clsx from 'clsx'
 
@@ -75,10 +75,11 @@ const SignIn: NextPage = () => {
     setSigningIn(true)
     try {
       const userCred = await signInWithPopup(auth, provider)
-      if (toCreate) toast({
-        title: `👋🏽 Welcome, ${userCred.user.displayName?.split(' ')[0]}`,
-        status: 'success'
-      })
+      if (toCreate)
+        toast({
+          title: `👋🏽 Welcome, ${userCred.user.displayName?.split(' ')[0]}`,
+          status: 'success',
+        })
       router.push(toCreate ? '/create' : '/quests')
     } catch {
       setSigningIn(false)
@@ -89,18 +90,20 @@ const SignIn: NextPage = () => {
     <Layout>
       <Meta title="Sign In" />
       <Flex direction={'column'} alignItems={'center'} gridGap="7">
-        {toCreate && <Text
-          px="3"
-          py="1"
-          borderRadius={'md'}
-          display={'inline-block'}
-          backgroundColor={'pink.200'}
-          fontWeight={'bold'}
-          textAlign={'center'}
-        >
-          First, please sign in to make sure you don&apos;t lose access to your
-          quests.
-        </Text>}
+        {toCreate && (
+          <Text
+            px="3"
+            py="1"
+            borderRadius={'md'}
+            display={'inline-block'}
+            backgroundColor={'pink.200'}
+            fontWeight={'bold'}
+            textAlign={'center'}
+          >
+            First, please sign in to make sure you don&apos;t lose access to
+            your quests.
+          </Text>
+        )}
         <Center h="100%">
           <Flex
             w="72"
@@ -124,6 +127,18 @@ const SignIn: NextPage = () => {
                   onClick={() => signInWithProvider(googleProvider)}
                 >
                   Sign in with Google
+                </AuthProviderButton>
+                <AuthProviderButton
+                  iconName="twitter"
+                  onClick={() => signInWithProvider(twitterProvider)}
+                >
+                  Sign in with Twitter
+                </AuthProviderButton>
+                <AuthProviderButton
+                  iconName="github"
+                  onClick={() => signInWithProvider(githubProvider)}
+                >
+                  Sign in with GitHub
                 </AuthProviderButton>
               </>
             )}
