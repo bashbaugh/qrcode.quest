@@ -197,25 +197,24 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                   </Text>
                 )}
                 {data.isFinalCode && <Text fontWeight={'bold'}>Nice job!</Text>}
-                {data.note ||
-                  (data.isFinalCode && (
-                    <Box
-                      p="4"
-                      border="1px"
-                      borderColor={'violet'}
-                      rounded="lg"
-                      shadow="xl"
-                      backgroundColor={'white'}
-                      opacity={'0.8'}
-                    >
-                      <Text fontSize={'md'} textAlign={'center'}>
-                        {data.isFinalCode && data.completionNote
-                          ? data.completionNote
-                          : data.note ||
-                            (data.isFinalCode ? DEFAULT_COMPLETION_NOTE : '')}
-                      </Text>
-                    </Box>
-                  ))}
+                {(data.note || data.isFinalCode) && (
+                  <Box
+                    p="4"
+                    border="1px"
+                    borderColor={'violet'}
+                    rounded="lg"
+                    shadow="xl"
+                    backgroundColor={'white'}
+                    opacity={'0.8'}
+                  >
+                    <Text fontSize={'md'} textAlign={'center'}>
+                      {data.isFinalCode && data.completionNote
+                        ? data.completionNote
+                        : data.note ||
+                          (data.isFinalCode ? DEFAULT_COMPLETION_NOTE : '')}
+                    </Text>
+                  </Box>
+                )}
                 {data.isFinalCode && data.victoryFulfillment === 'CLAIM_CODE' && (
                   <>
                     {!claimCode && !claimNotAllowed && !alreadyClaimed && (
