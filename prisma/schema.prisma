@@ -57,7 +57,7 @@ model ClaimCode {
   id      Int     @id @default(autoincrement())
   code    Int
   claimed Boolean
-  quest   Quest   @relation(fields: [questId], references: [id])
+  quest   Quest   @relation(fields: [questId], references: [id], onDelete: Cascade)
   questId Int
 
   // Codes must be unique per quest
@@ -67,7 +67,7 @@ model ClaimCode {
 model ClaimEmail {
   id      Int    @id @default(autoincrement())
   email   String
-  quest   Quest  @relation(fields: [questId], references: [id])
+  quest   Quest  @relation(fields: [questId], references: [id], onDelete: Cascade)
   questId Int
 
   @@unique([questId, email])

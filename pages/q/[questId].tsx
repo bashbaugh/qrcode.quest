@@ -491,7 +491,12 @@ const QuestSettings: NextPage = () => {
                         Collect emails: Ask users for their emails, which will
                         then be shared with you.
                       </p>
-                      <p>None: There's no way to automatically track your victors. You'll have to confirm manually that they completed the quest by having them scan one of the codes.</p>
+                      <p>
+                        None: There's no way to automatically track your
+                        victors. You'll have to confirm manually that they
+                        completed the quest by having them scan one of the
+                        codes.
+                      </p>
                     </>
                   }
                 >
@@ -682,8 +687,24 @@ const QuestSettings: NextPage = () => {
                 </AlertDialogHeader>
 
                 <AlertDialogBody>
-                  Are you sure? All QR codes associated with this quest will
-                  stop functioning, and you can't undo this.
+                  <Text>
+                    Are you sure? All QR codes associated with quest{' '}
+                    <Text
+                      as="span"
+                      fontWeight={'bold'}
+                      borderRadius={'sm'}
+                      p="1"
+                      backgroundColor={'red'}
+                      color="white"
+                    >
+                      {quest.name}
+                    </Text>{' '}
+                    will stop functioning.
+                  </Text>
+
+                  <Text my="2" fontWeight={'bold'}>
+                    You can't undo this.
+                  </Text>
                 </AlertDialogBody>
 
                 <AlertDialogFooter>
