@@ -1,7 +1,6 @@
 import {
   NextApiRequest,
   NextApiResponse,
-  NextPage,
   NextPageContext,
 } from 'next'
 import cookie from 'cookie'
@@ -20,7 +19,7 @@ export const setCookieHeader = (
   expDate.setFullYear(expDate.getFullYear() + 1)
 
   res?.setHeader('Set-Cookie', [
-    `${name}=${value}; Expires=${expDate.toUTCString()}`,
+    `${name}=${value}; Path=/; Expires=${expDate.toUTCString()}`,
   ])
 }
 
