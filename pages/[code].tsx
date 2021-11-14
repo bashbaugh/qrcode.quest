@@ -62,15 +62,15 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
     //     .then(() => router.reload())
     // }
 
-    if (!data.questDeleted) {
-      const questAlreadyClaimed = document.cookie
-        ?.split('; ')
-        ?.find((row) => row.startsWith(CLAIMED_QUESTS_COOKIE_NAME + '='))
-        ?.split('=')[1]
-        .split(COOKIE_DELIMITER)
-        .includes(data.slug)
+    if (!data.questDeleted && (data.enableQuest || testMode)) {
+      // const questAlreadyClaimed = document.cookie
+      //   ?.split('; ')
+      //   ?.find((row) => row.startsWith(CLAIMED_QUESTS_COOKIE_NAME + '='))
+      //   ?.split('=')[1]
+      //   .split(COOKIE_DELIMITER)
+      //   .includes(data.slug)
 
-      if (questAlreadyClaimed) setAlreadyClaimed(true)
+      // if (questAlreadyClaimed) setAlreadyClaimed(true)
 
       if (!testMode && !router.query.scanTracked) {
         // Track the scan and mark this as a completion if it's the final code.

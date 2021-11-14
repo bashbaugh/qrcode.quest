@@ -491,6 +491,7 @@ const QuestSettings: NextPage = () => {
                         Collect emails: Ask users for their emails, which will
                         then be shared with you.
                       </p>
+                      <p>None: There's no way to automatically track your victors. You'll have to confirm manually that they completed the quest by having them scan one of the codes.</p>
                     </>
                   }
                 >
@@ -511,6 +512,7 @@ const QuestSettings: NextPage = () => {
                   setVictoryType(e.target.value as any)
                 }}
               >
+                <option value="NONE">Don't track quest completions</option>
                 <option value="CLAIM_CODE">Claim codes</option>
                 <option value="COLLECT_EMAIL">Collect emails</option>
               </Select>

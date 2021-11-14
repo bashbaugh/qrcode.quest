@@ -9,7 +9,7 @@ const Meta: React.FC<{
   image?: string
 }> = ({
   title: pageTitle,
-  description = `Create a scavenger hunt using QR codes, and automatically track your players' progress`,
+  description = `Create automated scavenger hunts using QR codes, and easily track your players' progress`,
   image = url + '/img/og/basic.png',
   children,
 }) => {

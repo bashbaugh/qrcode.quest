@@ -8,6 +8,16 @@ module.exports = {
         destination: '/?fromscan=1&ref=onboarding-qr',
         permanent: false,
       },
+      {
+        source: '/demoquest/1',
+        destination: '/Foou-SerIHB',
+        permanent: false
+      },
+      {
+        source: '/demoquest/2',
+        destination: '/UeG24znitul',
+        permanent: false
+      }
     ]
   },
 }

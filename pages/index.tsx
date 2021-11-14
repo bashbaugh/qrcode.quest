@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
-import { Flex, Spacer, Image, Button, Text } from '@chakra-ui/react'
+import { Flex, Spacer, Image, Button, Text, Heading, Box } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import Link from 'next/link'
 
@@ -36,6 +36,18 @@ const Home: NextPage = () => {
             </Link>
           </>
         )}
+      </Flex>
+
+      <Flex my='12' gridGap={'6'} direction={'column'} alignItems={'center'}>
+        <Flex gridGap={'16'} w={'full'}>
+          <Box>
+            <Heading size='lg' mb='4'>Automate your Scavenger Hunt</Heading>
+            <Text fontSize='lg'>Create a series of QR codes for your questers to scan. Then, monitor their progress and track your quest&apos;s champions. <Text fontWeight={'bold'} as='span'>Try it out now by scnaning the code to the right.</Text></Text>
+          </Box>
+          <Box>
+            <Image />
+          </Box>
+        </Flex>
       </Flex>
     </Layout>
   )

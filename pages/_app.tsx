@@ -19,7 +19,7 @@ NProgress.configure({
 if (!getApps().length)
   initializeApp({
     apiKey: 'AIzaSyD_HhtJ1Kl6KbUrJbjUEFM5uoAxMBzPSys',
-    authDomain: 'qr-code-quest.firebaseapp.com',
+    authDomain: 'auth.qrcode.quest',
     projectId: 'qr-code-quest',
     storageBucket: 'qr-code-quest.appspot.com',
     messagingSenderId: '1079122501721',

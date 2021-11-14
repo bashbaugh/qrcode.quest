@@ -37,6 +37,7 @@ model Quest {
 }
 
 enum VictoryFulfillmentType {
+  NONE
   CLAIM_CODE
   COLLECT_EMAIL
 }
