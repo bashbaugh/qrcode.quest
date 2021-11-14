@@ -1,14 +1,15 @@
 import clsx from 'clsx'
 import React from 'react'
+import { Box } from '@chakra-ui/react'
 
 const Layout: React.FC<{}> = ({ children }) => {
   return (
-    <div className="w-full">
+    <div>
       <nav></nav>
 
-      <div className="max-w-6xl mx-auto p-8 md:p-32">
+      <Box maxW={'6xl'} mx='auto' p={{ base: '8', md: '32' }}>
         <main>{children}</main>
-      </div>
+      </Box>
 
       <footer></footer>
     </div>

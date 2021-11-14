@@ -60,8 +60,8 @@ export default async function handler(
         where: { id: code.quest!.id },
         data: {
           completionsCount: {
-            increment: 1
-          }
+            increment: 1,
+          },
         },
       })
 

@@ -65,7 +65,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
         // Track the scan and mark this as a completion if it's the final code.
         axios.post('/api/trackscan', {
           slug: data.slug,
-          completed: data.isNewCode && data.isFinalCode
+          completed: data.isNewCode && data.isFinalCode,
         })
 
       if (data.enableConfetti && data.isFinalCode) {
@@ -245,11 +245,12 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                     )}
                   </>
                 )}
-                {data.isFinalCode && data.victoryFulfillment === 'COLLECT_EMAIL' && (
-                  <>
-                    <Text>Email collections coming soon.</Text>
-                  </>
-                )}
+                {data.isFinalCode &&
+                  data.victoryFulfillment === 'COLLECT_EMAIL' && (
+                    <>
+                      <Text>Email collections coming soon.</Text>
+                    </>
+                  )}
               </Flex>
             </>
           )}

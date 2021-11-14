@@ -21,6 +21,8 @@ import {
   useToast,
   Text,
   Spinner,
+  ButtonSpinner,
+  Image,
 } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 
@@ -33,16 +35,29 @@ const AuthProviderButton: React.FC<{
   onClick: () => void
 }> = ({ children, iconName, onClick }) => {
   return (
-    <button
-      className={clsx(
-        'w-full rounded-sm py-3 bg-white shadow-lg flex items-center justify-center gap-2 border hover:shadow-xl transition-all duration-300'
-      )}
+    <Button
+    variant={'unstyled'}
+      w='full'
+      rounded='sm'
+      py='7'
+      backgroundColor={'white'}
+      display={'flex'}
+      alignItems={'center'}
+      justifyContent={'center'}
+      gridGap={'2'}
+      border='1px'
+      borderColor={'gray.200'}
+      shadow='md'
+      _hover={{
+        shadow: 'xl',
+      }}
+      transition={'all 0.3s'}
       onClick={onClick}
       // onClick={onClick}
     >
-      <img src={`/icon/${iconName}.svg`} className="w-7" alt={iconName} />
+      <Image src={`/icon/${iconName}.svg`} w='7' alt={iconName} />
       <span>{children}</span>
-    </button>
+    </Button>
   )
 }
 

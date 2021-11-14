@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Code, PrismaClient, Quest } from '@prisma/client'
 import { requireAuth } from 'lib/apiAuth'
-// import { getQrCode } from 'lib/qr'
+import { getQrCode } from 'lib/qr'
 
 const prisma = new PrismaClient()
 
@@ -67,7 +67,15 @@ export default async function handler(
     return
   }
 
-  const images = await Promise.all(quest.codes.map((c) => (async () => 'howds')()))
+  const makeUrl = (slug: string) =>
+    process.env.NODE_ENV === 'development'
+      ? `http://localhost:3000/${slug}`
+      : `https://qrcode.quest/${slug}`
+
+  // TODO more QR code options
+  const images = await Promise.all(
+    quest.codes.map((c) => getQrCode(makeUrl(c.slug)))
+  )
 
   const codes = quest.codes.map((c, i) => ({
     slug: c.slug,
@@ -75,10 +83,7 @@ export default async function handler(
     image: images[i],
     name: c.name,
     note: c.note,
-    url:
-      process.env.NODE_ENV === 'development'
-        ? `http://localhost:3000/${c.slug}`
-        : `https://qrcode.quest/${c.slug}`,
+    url: makeUrl(c.slug),
   }))
 
   res.json({
