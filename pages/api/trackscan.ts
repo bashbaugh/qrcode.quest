@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { requireAuth } from 'lib/apiAuth'
 import cookie from 'cookie'
-import { COOKIE_DELIMITER, SCANED_CODES_COOKIE_NAME } from 'pages/[code]'
+import { COOKIE_DELIMITER, SCANNED_CODES_COOKIE_NAME } from 'pages/[code]'
 
 const prisma = new PrismaClient()
 
@@ -46,7 +46,7 @@ export default async function handler(
 
     let hasAllCodes = true
     const cookies = cookie.parse(req.headers.cookie || '')
-    const scannedCodes = (cookies[SCANED_CODES_COOKIE_NAME] || '').split(
+    const scannedCodes = (cookies[SCANNED_CODES_COOKIE_NAME] || '').split(
       COOKIE_DELIMITER
     )
     // Make sure user has all codes

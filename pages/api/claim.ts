@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import {
   CLAIMED_QUESTS_COOKIE_NAME,
   COOKIE_DELIMITER,
-  SCANED_CODES_COOKIE_NAME,
+  SCANNED_CODES_COOKIE_NAME,
 } from 'pages/[code]'
 import cookie from 'cookie'
 import getCode from 'lib/getCode'
 import { randomInt } from 'lib/util'
+import { setCookieHeader } from 'lib/cookies'
 
 const prisma = new PrismaClient()
 
@@ -39,7 +40,7 @@ export default async function handler(
 
   const cookies = cookie.parse(req.headers.cookie || '')
 
-  const scannedCodes = (cookies[SCANED_CODES_COOKIE_NAME] || '').split(
+  const scannedCodes = (cookies[SCANNED_CODES_COOKIE_NAME] || '').split(
     COOKIE_DELIMITER
   )
   const claimedQuests = (cookies[CLAIMED_QUESTS_COOKIE_NAME] || '').split(
@@ -71,9 +72,7 @@ export default async function handler(
   })
 
   claimedQuests.push(code.quest.slug)
-  res.setHeader('Set-Cookie', [
-    CLAIMED_QUESTS_COOKIE_NAME + '=' + claimedQuests.join(COOKIE_DELIMITER),
-  ])
+  setCookieHeader(res, CLAIMED_QUESTS_COOKIE_NAME, claimedQuests.join(COOKIE_DELIMITER))
 
   res.json({
     claimCode: claim.code,

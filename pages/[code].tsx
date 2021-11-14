@@ -12,6 +12,7 @@ import { ClaimResponse } from './api/claim'
 import { useToast } from 'lib/toast'
 import { InfoIcon } from '@chakra-ui/icons'
 import { Quest } from '@prisma/client'
+import { setCookieHeader } from 'lib/cookies'
 
 export const DEFAULT_COMPLETION_NOTE = 'Congrats, you found all the codes!'
 
@@ -51,15 +52,15 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const testMode = !!router.query.testMode
 
   useEffect(() => {
-    // On iPhone safari, need to reload to work around problem which blocks cookies when scanning from QR code
-    if (
-      /iPhone|iPad|iPod/i.test(navigator.userAgent) &&
-      !router.query.iphoneReloaded
-    ) {
-      router
-        .replace('?iphoneReloaded=1', undefined, {})
-        .then(() => router.reload())
-    }
+    // // On iPhone safari, need to reload to work around problem which blocks cookies when scanning from QR code
+    // if (
+    //   /iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+    //   !router.query.iphoneReloaded
+    // ) {
+    //   router
+    //     .replace('?iphoneReloaded=1', undefined, {})
+    //     .then(() => router.reload())
+    // }
 
     if (!data.questDeleted) {
       const questAlreadyClaimed = document.cookie
@@ -285,7 +286,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
 
 export default QuestSettings
 
-export const SCANED_CODES_COOKIE_NAME = 'sqrcs'
+export const SCANNED_CODES_COOKIE_NAME = 'sqrcs'
 export const CLAIMED_QUESTS_COOKIE_NAME = 'clquests'
 export const COOKIE_DELIMITER = ','
 export async function getServerSideProps(ctx: NextPageContext) {
@@ -311,7 +312,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
   }
 
   const scannedCodesCookie = cookie.parse(ctx.req?.headers.cookie || '')[
-    SCANED_CODES_COOKIE_NAME
+    SCANNED_CODES_COOKIE_NAME
   ]
   const scannedCodes = new Set(
     scannedCodesCookie?.split(COOKIE_DELIMITER) || []
@@ -332,9 +333,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
 
   // Only set the cookie if the quest is enabled
   if (code.quest.enableQuest)
-    ctx.res?.setHeader('Set-Cookie', [
-      SCANED_CODES_COOKIE_NAME + '=' + newCodesString,
-    ])
+    setCookieHeader(ctx.res!, SCANNED_CODES_COOKIE_NAME, newCodesString)
 
   const props: CodePageProps = {
     data: {
