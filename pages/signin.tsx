@@ -68,12 +68,18 @@ const SignIn: NextPage = () => {
   })
   const [signingIn, setSigningIn] = useState(false)
 
+  const { toCreate } = router.query
+
   const signInWithProvider = async (provider: any) => {
     const auth = getAuth()
     setSigningIn(true)
     try {
-      await signInWithPopup(auth, provider)
-      router.push('/quests')
+      const userCred = await signInWithPopup(auth, provider)
+      if (toCreate) toast({
+        title: `👋🏽 Welcome, ${userCred.user.displayName?.split(' ')[0]}`,
+        status: 'success'
+      })
+      router.push(toCreate ? '/create' : '/quests')
     } catch {
       setSigningIn(false)
     }
@@ -82,34 +88,48 @@ const SignIn: NextPage = () => {
   return (
     <Layout>
       <Meta title="Sign In" />
-      <Center h="100%">
-        <Flex
-          w="72"
-          direction="column"
-          gridGap="5"
-          textAlign="center"
-          borderWidth="1px"
-          borderRadius="lg"
-          p="6"
+      <Flex direction={'column'} alignItems={'center'} gridGap="7">
+        {toCreate && <Text
+          px="3"
+          py="1"
+          borderRadius={'md'}
+          display={'inline-block'}
+          backgroundColor={'pink.200'}
+          fontWeight={'bold'}
+          textAlign={'center'}
         >
-          <Heading>Sign In</Heading>
+          First, please sign in to make sure you don&apos;t lose access to your
+          quests.
+        </Text>}
+        <Center h="100%">
+          <Flex
+            w="72"
+            direction="column"
+            gridGap="5"
+            textAlign="center"
+            borderWidth="1px"
+            borderRadius="lg"
+            p="6"
+          >
+            <Heading>Sign In</Heading>
 
-          {signingIn ? (
-            <Spinner mx="auto" size="xl" />
-          ) : (
-            <>
-              <Text>Please choose a sign-in provider</Text>
+            {signingIn ? (
+              <Spinner mx="auto" size="xl" />
+            ) : (
+              <>
+                <Text>Choose a sign-in provider</Text>
 
-              <AuthProviderButton
-                iconName="google"
-                onClick={() => signInWithProvider(googleProvider)}
-              >
-                Sign in with Google
-              </AuthProviderButton>
-            </>
-          )}
-        </Flex>
-      </Center>
+                <AuthProviderButton
+                  iconName="google"
+                  onClick={() => signInWithProvider(googleProvider)}
+                >
+                  Sign in with Google
+                </AuthProviderButton>
+              </>
+            )}
+          </Flex>
+        </Center>
+      </Flex>
     </Layout>
   )
 }

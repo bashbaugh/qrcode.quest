@@ -72,7 +72,11 @@ export default async function handler(
   })
 
   claimedQuests.push(code.quest.slug)
-  setCookieHeader(res, CLAIMED_QUESTS_COOKIE_NAME, claimedQuests.join(COOKIE_DELIMITER))
+  setCookieHeader(
+    res,
+    CLAIMED_QUESTS_COOKIE_NAME,
+    claimedQuests.join(COOKIE_DELIMITER)
+  )
 
   res.json({
     claimCode: claim.code,

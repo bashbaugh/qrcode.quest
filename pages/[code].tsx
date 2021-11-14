@@ -78,7 +78,10 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
           slug: data.slug,
           completed: data.isNewCode && data.isFinalCode,
         })
-        router.replace(window.location.href + '?scanTracked=1', undefined, { scroll: false, shallow: true })
+        router.replace(window.location.href + '?scanTracked=1', undefined, {
+          scroll: false,
+          shallow: true,
+        })
       }
 
       if (data.enableConfetti && data.isFinalCode) {
