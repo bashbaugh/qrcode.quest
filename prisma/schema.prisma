@@ -29,7 +29,7 @@ model Quest {
   claimEmails ClaimEmail[]
 
   enableQuest        Boolean                @default(true)
-  victoryFulfillment VictoryFulfillmentType @default(CLAIM_CODE)
+  victoryFulfillment VictoryFulfillmentType @default(NONE)
   enableConfetti     Boolean                @default(true)
   completionNote     String                 @default("")
 

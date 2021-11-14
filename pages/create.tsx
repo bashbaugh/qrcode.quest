@@ -99,8 +99,13 @@ const Create: NextPage = () => {
             </FormHelperText>
           </FormControl>
 
-          <Button isLoading={submitting} type="submit" colorScheme={'blue'}>
-            Generate My Quest
+          <Button
+            isLoading={submitting}
+            loadingText="Generating QR codes..."
+            type="submit"
+            colorScheme={'blue'}
+          >
+            Continue to Setup
           </Button>
         </Flex>
       </form>

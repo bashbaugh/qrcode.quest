@@ -1,15 +1,15 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
-import {
-  CLAIMED_QUESTS_COOKIE_NAME,
-  COOKIE_DELIMITER,
-  SCANNED_CODES_COOKIE_NAME,
-} from 'pages/[code]'
 import cookie from 'cookie'
 import getCode from 'lib/getCode'
 import { randomInt } from 'lib/util'
-import { setCookieHeader } from 'lib/cookies'
+import {
+  CLAIMED_QUESTS_COOKIE_NAME,
+  COOKIE_DELIMITER,
+  getCookieData,
+  setCookieHeader,
+} from 'lib/cookies'
 
 const prisma = new PrismaClient()
 
@@ -38,14 +38,7 @@ export default async function handler(
 
   if (!isMobile) return returnNotAllowed(res)
 
-  const cookies = cookie.parse(req.headers.cookie || '')
-
-  const scannedCodes = (cookies[SCANNED_CODES_COOKIE_NAME] || '').split(
-    COOKIE_DELIMITER
-  )
-  const claimedQuests = (cookies[CLAIMED_QUESTS_COOKIE_NAME] || '').split(
-    COOKIE_DELIMITER
-  )
+  const { scannedCodes, claimedQuests } = getCookieData(req)
 
   const slug = req.query.slug
   if (typeof slug !== 'string') return returnNotAllowed(res)

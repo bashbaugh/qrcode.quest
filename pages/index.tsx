@@ -17,7 +17,7 @@ import { useState } from 'react'
 const ctaBtnHoverActiveObj = {
   bgGradient: 'linear(to-r, pink.500, purple.500)',
   transform: 'scale(1.05)',
-  shadow: '2xl'
+  shadow: '2xl',
 }
 
 const Home: NextPage = () => {
@@ -58,14 +58,15 @@ const Home: NextPage = () => {
       <Flex my="12" gridGap={'20'} direction={'column'} alignItems={'center'}>
         <Flex gridGap={'16'} w={'full'} alignItems={'center'}>
           <Box>
-            <Heading as='h1' size="lg" mb="4">
+            <Heading as="h1" size="lg" mb="4">
               📱 Automate your Scavenger Hunt ✨
             </Heading>
             <Text fontSize="lg">
               Create a series of QR codes for your questers to scan. Then,
-              monitor their progress and track your quest&apos;s champions.{' '} 
+              monitor their progress and track your quest&apos;s champions.{' '}
               <Text fontWeight={'bold'} as="span">
-                Try it out now by scanning the code to the right with your phone&apos;s camera.
+                Try it out now by scanning the code to the right with your
+                phone&apos;s camera.
               </Text>
             </Text>
           </Box>
@@ -91,7 +92,7 @@ const Home: NextPage = () => {
           </Box>
         </Flex>
 
-        <Link href="/signin?toCreate=1">
+        <Link href={user ? '/create' : '/signin?toCreate=1'}>
           <a>
             <Button
               color="white"

@@ -2,7 +2,16 @@ import type { NextPage, NextPageContext } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import { useRouter } from 'next/router'
-import { Badge, Box, Button, Flex, Heading, Tag, Text } from '@chakra-ui/react'
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  Tag,
+  Text,
+} from '@chakra-ui/react'
 import getCode from 'lib/getCode'
 import cookie from 'cookie'
 import { useEffect, useRef, useState } from 'react'
@@ -12,7 +21,13 @@ import { ClaimCodeResponse } from './api/claim/[slug]/code'
 import { useToast } from 'lib/toast'
 import { InfoIcon } from '@chakra-ui/icons'
 import { Quest } from '@prisma/client'
-import { setCookieHeader } from 'lib/cookies'
+import {
+  CLAIMED_QUESTS_COOKIE_NAME,
+  COOKIE_DELIMITER,
+  SCANNED_CODES_COOKIE_NAME,
+  setCookieHeader,
+} from 'lib/cookies'
+import { EmailClaimResponse } from './api/claim/[slug]/email'
 
 export const DEFAULT_COMPLETION_NOTE = 'Congrats, you found all the codes!'
 
@@ -46,6 +61,8 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const [claiming, setClaiming] = useState(false)
   const [claimNotAllowed, setClaimNoteAllowed] = useState(false)
   const [claimCode, setClaimCode] = useState<string>()
+  const [claimEmailVal, setClaimEmailVal] = useState<string>()
+  const [emailClaimed, setEmailClaimed] = useState(false)
   const [alreadyClaimed, setAlreadyClaimed] = useState(false)
   const toast = useToast()
 
@@ -63,14 +80,16 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
     // }
 
     if (!data.questDeleted && (data.enableQuest || testMode)) {
-      // const questAlreadyClaimed = document.cookie
-      //   ?.split('; ')
-      //   ?.find((row) => row.startsWith(CLAIMED_QUESTS_COOKIE_NAME + '='))
-      //   ?.split('=')[1]
-      //   .split(COOKIE_DELIMITER)
-      //   .includes(data.slug)
+      const questAlreadyClaimed = document.cookie
+        ?.split('; ')
+        ?.find((row) => row.startsWith(CLAIMED_QUESTS_COOKIE_NAME + '='))
+        ?.split('=')[1]
+        .split(COOKIE_DELIMITER)
+        .includes(data.slug)
 
-      // if (questAlreadyClaimed) setAlreadyClaimed(true)
+      // console.log(questAlreadyClaimed, document.cookie)
+
+      setAlreadyClaimed(!!questAlreadyClaimed)
 
       if (!testMode && !router.query.scanTracked) {
         // Track the scan and mark this as a completion if it's the final code.
@@ -111,7 +130,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
     }
   }, [])
 
-  const claimQuest = async () => {
+  const claimWithCode = async () => {
     if (data.questDeleted || testMode) {
       toast({
         title: `You can't claim a quest in test mode. Try scanning the QR codes.`,
@@ -120,7 +139,9 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
     }
     setClaiming(true)
     try {
-      const res = await axios.post<ClaimCodeResponse>(`/api/claim/${data.slug}/code`)
+      const res = await axios.post<ClaimCodeResponse>(
+        `/api/claim/${data.slug}/code`
+      )
 
       if (res.data.claimCode) {
         let codeString = res.data.claimCode.toString()
@@ -138,6 +159,45 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
       setClaiming(false)
     }
   }
+
+  const claimWithEmail = async () => {
+    if (data.questDeleted || testMode) {
+      toast({
+        title: `You can't claim a quest in test mode. Try scanning the QR codes.`,
+      })
+      return
+    }
+    setClaiming(true)
+    try {
+      const res = await axios.post<EmailClaimResponse>(
+        `/api/claim/${data.slug}/email`,
+        {
+          email: claimEmailVal,
+        }
+      )
+
+      if (res.data.claimed) {
+        setEmailClaimed(true)
+      } else if (res.data.notAllowed) {
+        toast({
+          title: `Something went wrong... Is that a valid email?`,
+          status: 'error',
+        })
+      }
+    } catch (err) {
+      console.log(err)
+      toast({
+        title: `Please try again`,
+        status: 'error',
+      })
+    } finally {
+      setClaiming(false)
+    }
+  }
+
+  const codesRemaining: number = (!data.questDeleted &&
+    data.totalCodes - data.codesFound) as number
+  const remainingPlural = codesRemaining !== 1
 
   return (
     <Layout>
@@ -187,11 +247,11 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                 )}
                 {!data.isFinalCode && (
                   <Text fontWeight={'bold'}>
-                    There are{' '}
+                    There {remainingPlural ? 'are ' : 'is '}
                     <Badge colorScheme={'purple'} fontSize={'lg'}>
-                      {data.totalCodes - data.codesFound}
+                      {codesRemaining}
                     </Badge>{' '}
-                    codes left to scan 🎉
+                    {remainingPlural ? 'codes' : 'code'} left to scan 🎉
                   </Text>
                 )}
                 {data.isFinalCode && <Text fontWeight={'bold'}>Nice job!</Text>}
@@ -199,12 +259,23 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                   <Box
                     p="4"
                     border="1px"
-                    borderColor={'violet'}
+                    pos={'relative'}
+                    borderColor={'purple.600'}
                     rounded="lg"
-                    shadow="xl"
                     backgroundColor={'white'}
-                    opacity={'0.8'}
+                    // opacity={'0.8'}
                   >
+                    <Box
+                      rounded={'lg'}
+                      pos={'absolute'}
+                      w={'full'}
+                      h="full"
+                      left="0"
+                      top="0"
+                      bg="purple.600"
+                      zIndex={'-1'}
+                      transform={'translate(-3px, 4px)'}
+                    />
                     <Text fontSize={'md'} textAlign={'center'}>
                       {data.isFinalCode && data.completionNote
                         ? data.completionNote
@@ -217,7 +288,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                   <>
                     {!claimCode && !claimNotAllowed && !alreadyClaimed && (
                       <Button
-                        onClick={claimQuest}
+                        onClick={claimWithCode}
                         bgGradient="linear(to-l, #7928CA, #FF0080)"
                         color="white"
                         _hover={{
@@ -259,9 +330,56 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
                   </>
                 )}
                 {data.isFinalCode &&
-                  data.victoryFulfillment === 'COLLECT_EMAIL' && (
+                  data.victoryFulfillment === 'COLLECT_EMAIL' &&
+                  !alreadyClaimed && (
                     <>
-                      <Text>Email collections coming soon.</Text>
+                      {!emailClaimed && (
+                        <>
+                          <Input
+                            bg="white"
+                            w="72"
+                            placeholder="youremail@example.com"
+                            onChange={(e) => setClaimEmailVal(e.target.value)}
+                          />
+                          <Button
+                            onClick={claimWithEmail}
+                            bgGradient="linear(to-l, #7928CA, #FF0080)"
+                            color="white"
+                            _hover={{
+                              bgGradient: 'linear(to-l, #7928CA, #FF0080)',
+                            }}
+                            _active={{
+                              bgGradient: 'linear(to-l, #7928CA, #FF0080)',
+                            }}
+                            isLoading={claiming}
+                            loadingText="Please wait"
+                            disabled={emailClaimed}
+                          >
+                            Claim Victory
+                          </Button>
+                          <Text
+                            fontSize={'xs'}
+                            color="gray.400"
+                            textAlign={'center'}
+                          >
+                            Your email will be saved and shared with the creator
+                            of this quest, so make sure you trust them. Your
+                            email will not be used for any other purposes.
+                          </Text>
+                        </>
+                      )}
+                      {emailClaimed && (
+                        <>
+                          <Text
+                            fontWeight={'bold'}
+                            textAlign={'center'}
+                            rounded={'md'}
+                            backgroundColor={'white'}
+                          >
+                            🥳 Yay! Your email has been saved.
+                          </Text>
+                        </>
+                      )}
                     </>
                   )}
               </Flex>
@@ -288,9 +406,6 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
 
 export default QuestSettings
 
-export const SCANNED_CODES_COOKIE_NAME = 'sqrcs'
-export const CLAIMED_QUESTS_COOKIE_NAME = 'clquests'
-export const COOKIE_DELIMITER = ','
 export async function getServerSideProps(ctx: NextPageContext) {
   if (typeof ctx.query.code !== 'string')
     return {
