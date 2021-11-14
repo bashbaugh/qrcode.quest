@@ -36,18 +36,18 @@ const AuthProviderButton: React.FC<{
 }> = ({ children, iconName, onClick }) => {
   return (
     <Button
-    variant={'unstyled'}
-      w='full'
-      rounded='sm'
-      py='7'
+      variant={'unstyled'}
+      w="full"
+      rounded="sm"
+      py="7"
       backgroundColor={'white'}
       display={'flex'}
       alignItems={'center'}
       justifyContent={'center'}
       gridGap={'2'}
-      border='1px'
+      border="1px"
       borderColor={'gray.200'}
-      shadow='md'
+      shadow="md"
       _hover={{
         shadow: 'xl',
       }}
@@ -55,7 +55,7 @@ const AuthProviderButton: React.FC<{
       onClick={onClick}
       // onClick={onClick}
     >
-      <Image src={`/icon/${iconName}.svg`} w='7' alt={iconName} />
+      <Image src={`/icon/${iconName}.svg`} w="7" alt={iconName} />
       <span>{children}</span>
     </Button>
   )

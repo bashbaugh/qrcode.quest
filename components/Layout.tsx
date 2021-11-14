@@ -7,7 +7,7 @@ const Layout: React.FC<{}> = ({ children }) => {
     <div>
       <nav></nav>
 
-      <Box maxW={'6xl'} mx='auto' p={{ base: '8', md: '32' }}>
+      <Box maxW={'6xl'} mx="auto" p={{ base: '8', md: '32' }}>
         <main>{children}</main>
       </Box>
 

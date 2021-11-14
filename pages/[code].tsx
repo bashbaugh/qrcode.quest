@@ -51,6 +51,16 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
   const testMode = !!router.query.testMode
 
   useEffect(() => {
+    // On iPhone safari, need to reload to work around problem which blocks cookies when scanning from QR code
+    if (
+      /iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+      !router.query.iphoneReloaded
+    ) {
+      router
+        .replace('?iphoneReloaded=1', undefined, {})
+        .then(() => router.reload())
+    }
+
     if (!data.questDeleted) {
       const questAlreadyClaimed = document.cookie
         ?.split('; ')
@@ -256,12 +266,15 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
           )}
           {data.questDeleted && (
             <>
-              <p>This quest has been deleted</p>
+              <Text textAlign={'center'}>This quest has been disabled.</Text>
             </>
           )}
           {!data.questDeleted && !data.enableQuest && !testMode && (
             <>
-              <p>This quest is not active right now. Please try again later.</p>
+              <Text textAlign={'center'}>
+                This QR code quest is not active right now. Please try again
+                later.
+              </Text>
             </>
           )}
         </Box>

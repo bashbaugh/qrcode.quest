@@ -10,6 +10,6 @@ export const getQrCode = (url: string): Promise<string> => {
   // const code = qrcode.create(url)
   return qrcode.toDataURL(url, {
     margin: 0,
-    scale: 10
+    scale: 10,
   })
 }
