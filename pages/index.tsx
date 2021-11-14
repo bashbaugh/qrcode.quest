@@ -58,14 +58,14 @@ const Home: NextPage = () => {
       <Flex my="12" gridGap={'20'} direction={'column'} alignItems={'center'}>
         <Flex gridGap={'16'} w={'full'} alignItems={'center'}>
           <Box>
-            <Heading size="lg" mb="4">
-              Automate your Scavenger Hunt
+            <Heading as='h1' size="lg" mb="4">
+              📱 Automate your Scavenger Hunt ✨
             </Heading>
             <Text fontSize="lg">
               Create a series of QR codes for your questers to scan. Then,
-              monitor their progress and track your quest&apos;s champions.{' '}
+              monitor their progress and track your quest&apos;s champions.{' '} 
               <Text fontWeight={'bold'} as="span">
-                Try it out now by scnaning the code to the right.
+                Try it out now by scanning the code to the right with your phone&apos;s camera.
               </Text>
             </Text>
           </Box>

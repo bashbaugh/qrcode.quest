@@ -10,17 +10,17 @@ import cookie from 'cookie'
 import getCode from 'lib/getCode'
 import { randomInt } from 'lib/util'
 import { setCookieHeader } from 'lib/cookies'
+import { validateEmail } from 'lib/email'
 
 const prisma = new PrismaClient()
 
-export interface ClaimResponse {
+export interface EmailClaimResponse {
   notAllowed?: boolean
-  notAllowedReason?: string
-  claimCode?: number
+  claimed?: true
 }
 
 const returnNotAllowed = (
-  res: NextApiResponse<ClaimResponse>,
+  res: NextApiResponse<EmailClaimResponse>,
   reason?: string
 ) => {
   res.json({
@@ -30,7 +30,7 @@ const returnNotAllowed = (
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ClaimResponse>
+  res: NextApiResponse<EmailClaimResponse>
 ) {
   const ua = req.headers['user-agent'] || ''
   const isMobile =
@@ -47,8 +47,9 @@ export default async function handler(
     COOKIE_DELIMITER
   )
 
-  const slug = req.body.slug
-  if (typeof slug !== 'string') return returnNotAllowed(res)
+  const slug = req.query.slug
+  const email = req.body.email
+  if (typeof slug !== 'string' || !validateEmail(email)) return returnNotAllowed(res)
 
   const code = await getCode(slug)
 
@@ -63,11 +64,10 @@ export default async function handler(
   // Make sure user has not already claimed quest
   if (claimedQuests.includes(code.quest.slug)) return returnNotAllowed(res)
 
-  const claim = await prisma.claimCode.create({
+  const claim = await prisma.claimEmail.create({
     data: {
-      code: randomInt(0, 99_999),
-      claimed: false,
       questId: code.quest.id,
+      email
     },
   })
 
@@ -79,6 +79,6 @@ export default async function handler(
   )
 
   res.json({
-    claimCode: claim.code,
+    claimed: true,
   })
 }

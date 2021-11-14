@@ -8,7 +8,7 @@ import cookie from 'cookie'
 import { useEffect, useRef, useState } from 'react'
 import ConfettiGenerator from 'confetti-js'
 import axios from 'lib/axios'
-import { ClaimResponse } from './api/claim'
+import { ClaimCodeResponse } from './api/claim/[slug]/code'
 import { useToast } from 'lib/toast'
 import { InfoIcon } from '@chakra-ui/icons'
 import { Quest } from '@prisma/client'
@@ -120,9 +120,7 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
     }
     setClaiming(true)
     try {
-      const res = await axios.post<ClaimResponse>('/api/claim', {
-        slug: data.slug,
-      })
+      const res = await axios.post<ClaimCodeResponse>(`/api/claim/${data.slug}/code`)
 
       if (res.data.claimCode) {
         let codeString = res.data.claimCode.toString()
