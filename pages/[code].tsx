@@ -72,12 +72,14 @@ const QuestSettings: NextPage<CodePageProps> = ({ data }) => {
 
       if (questAlreadyClaimed) setAlreadyClaimed(true)
 
-      if (!testMode)
+      if (!testMode && !router.query.scanTracked) {
         // Track the scan and mark this as a completion if it's the final code.
         axios.post('/api/trackscan', {
           slug: data.slug,
           completed: data.isNewCode && data.isFinalCode,
         })
+        router.replace(window.location.href + '?scanTracked=1', undefined, { scroll: false, shallow: true })
+      }
 
       if (data.enableConfetti && data.isFinalCode) {
         const confetti = new ConfettiGenerator({
