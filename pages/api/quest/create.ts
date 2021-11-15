@@ -19,12 +19,13 @@ export default async function handler(
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { name, steps } = req.body
+  const { name, steps, victoryFulfillment } = req.body
 
   const quest = await prisma.quest.create({
     data: {
       name,
       slug: nanoid(6),
+      victoryFulfillment,
       user: {
         connectOrCreate: {
           where: { uid: user.uid },

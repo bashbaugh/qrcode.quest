@@ -96,7 +96,7 @@ const SignIn: NextPage = () => {
             py="1"
             borderRadius={'md'}
             display={'inline-block'}
-            backgroundColor={'pink.200'}
+            backgroundColor={'primary.200'}
             fontWeight={'bold'}
             textAlign={'center'}
           >

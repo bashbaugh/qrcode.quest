@@ -10,6 +10,7 @@ import { useEffect } from 'react'
 import { getAuth, onAuthStateChanged } from '@firebase/auth'
 import { useGlobalState } from 'lib/state'
 import axios from 'lib/axios'
+import theme from '../theme'
 
 NProgress.configure({
   minimum: 0.4,
@@ -47,7 +48,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <div>
-      <ChakraProvider>
+      <ChakraProvider theme={theme}>
         <Component {...pageProps} />
       </ChakraProvider>
     </div>

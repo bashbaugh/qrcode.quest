@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 const ctaBtnHoverActiveObj = {
-  bgGradient: 'linear(to-r, pink.500, purple.500)',
+  bgGradient: 'linear(to-r, primary.500, purple.500)',
   transform: 'scale(1.05)',
   shadow: '2xl',
 }
@@ -34,7 +34,7 @@ const Home: NextPage = () => {
         <Spacer />
         {user && (
           <Link href="/quests">
-            <a>
+            <a tabIndex={-1}>
               <Button>My Quests</Button>
             </a>
           </Link>
@@ -42,13 +42,13 @@ const Home: NextPage = () => {
         {!user && (
           <>
             <Link href="/signin">
-              <a>
+              <a tabIndex={-1}>
                 <Button variant={'outline'}>Sign In</Button>
               </a>
             </Link>
             <Link href="/signin?toCreate=1">
-              <a>
-                <Button colorScheme={'green'}>Make a Quest</Button>
+              <a tabIndex={-1}>
+                <Button colorScheme={'primary'}>Make a Quest</Button>
               </a>
             </Link>
           </>
@@ -93,12 +93,12 @@ const Home: NextPage = () => {
         </Flex>
 
         <Link href={user ? '/create' : '/signin?toCreate=1'}>
-          <a>
+          <a tabIndex={-1}>
             <Button
               color="white"
               px="12"
               py="6"
-              bgGradient={'linear(to-r, pink.500, purple.500)'}
+              bgGradient={'linear(to-r, primary.500, purple.500)'}
               _hover={ctaBtnHoverActiveObj}
               _active={ctaBtnHoverActiveObj}
               size="lg"

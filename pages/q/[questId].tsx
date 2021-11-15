@@ -70,6 +70,7 @@ import Link from 'next/link'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
 import { CLAIM_CODE_LENGTH, DEFAULT_COMPLETION_NOTE } from 'pages/[code]'
 import { Quest } from '@prisma/client'
+import { BsCardImage } from 'react-icons/bs'
 
 function TitleControls() {
   const {
@@ -116,6 +117,8 @@ const QuestSettings: NextPage = () => {
   const [deleting, setDeleting] = useState(false)
 
   const [processingDownload, setProcessingDownload] = useState(false)
+
+  const  = useRef()
 
   type NewCodeData = Partial<{
     note: string
@@ -371,7 +374,7 @@ const QuestSettings: NextPage = () => {
             </Text>
             {victoryType === 'CLAIM_CODE' && (
               <Flex gridGap={'4'} alignItems={'center'}>
-                <Text>Check a quest claim code:</Text>
+                <Text>Check a completion code:</Text>
                 <NumberInput
                   maxW={'32'}
                   precision={0}
@@ -442,7 +445,7 @@ const QuestSettings: NextPage = () => {
                 </FormLabel>
                 <Switch
                   defaultChecked={quest.enableQuest}
-                  colorScheme="yellow"
+                  colorScheme="primary"
                   size="lg"
                   onChange={(e) => {
                     saveQuest({ enableQuest: e.target.checked })
@@ -467,7 +470,7 @@ const QuestSettings: NextPage = () => {
                 </FormLabel>
                 <Switch
                   defaultChecked={quest.enableConfetti}
-                  colorScheme="yellow"
+                  colorScheme="primary"
                   size="lg"
                   onChange={(e) => {
                     saveQuest({ enableConfetti: e.target.checked })
@@ -553,7 +556,7 @@ const QuestSettings: NextPage = () => {
             {newQuestData && (
               <div>
                 <Button
-                  colorScheme={'orange'}
+                  colorScheme={'primary'}
                   onClick={() => saveQuest()}
                   isLoading={questSaving}
                   loadingText="Saving..."
@@ -566,7 +569,7 @@ const QuestSettings: NextPage = () => {
 
           <Box my="12">
             <Button
-              colorScheme="green"
+              colorScheme="primary"
               leftIcon={<AttachmentIcon />}
               onClick={downloadAll}
               isLoading={processingDownload}
@@ -584,13 +587,15 @@ const QuestSettings: NextPage = () => {
               borderColor={'gray.100'}
             >
               {quest.codes.map((c, i) => (
-                <Flex gridGap={'6'} key={c.slug}>
+                <Box w='full'>
+                <Flex w='full' gridGap={'6'} key={c.slug}>
                   <Image src={c.image} alt="QR Code" w={'44'} />
                   <Flex
                     w="full"
                     direction={'column'}
                     gridGap={'0.5'}
                     key={c.slug}
+                    flex={'1 0 0px'}
                   >
                     <Heading size={'md'} display={'flex'} alignItems={'center'}>
                       <Text as="span" color={'gray.400'} mr="2">
@@ -636,7 +641,7 @@ const QuestSettings: NextPage = () => {
                         }`}
                       >
                         <Button
-                          colorScheme={'green'}
+                          colorScheme={'primary'}
                           size="sm"
                           leftIcon={<DownloadIcon />}
                           onClick={() => {
@@ -653,7 +658,7 @@ const QuestSettings: NextPage = () => {
                       {newCodesData[c.slug] && (
                         <Button
                           size="sm"
-                          colorScheme={'orange'}
+                          colorScheme={'secondary'}
                           leftIcon={<CheckIcon />}
                           isLoading={codesSaving[c.slug]}
                           loadingText="Saving..."
@@ -664,7 +669,21 @@ const QuestSettings: NextPage = () => {
                       )}
                     </Flex>
                   </Flex>
-                </Flex>
+                  <Flex
+                    direction={'column'}
+                    gridGap={'1'}
+                    key={c.slug}
+                    flex='0 1 0px'
+                    p='1'
+                    rounded={'lg'}
+                    border='1px'
+                    borderColor={'gray.100'}
+                    alignSelf={'center'}
+                  >
+                    <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadRe} />
+                    <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} />
+                  </Flex>
+                </Flex></Box>
               ))}
             </Stack>
           </Box>

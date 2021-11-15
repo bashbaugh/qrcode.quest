@@ -56,7 +56,7 @@ export default async function handler(
       },
       claimCodes: true,
       claimEmails: true,
-    },
+    }
   })
 
   if (!quest || quest.userId !== user.uid) {

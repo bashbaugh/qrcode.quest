@@ -2,11 +2,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
 import { requireAuth } from 'lib/apiAuth'
+import { nanoid } from 'nanoid'
 
 const prisma = new PrismaClient()
 
 export interface UpdateQuestCodeResponse {
   success?: boolean
+  imageId?: string
 }
 
 export default async function handler(
@@ -37,19 +39,21 @@ export default async function handler(
     return
   }
 
-  const { name, note }: { name?: string; note?: string } = req.body.newData
+  const { name, note, uploadImage }: { name?: string; note?: string; uploadImage: boolean } = req.body.newData
 
-  await prisma.code.update({
+  const newCode = await prisma.code.update({
     where: {
       id: code.id,
     },
     data: {
       name,
       note,
+      imageId: uploadImage ? nanoid(18) : undefined
     },
   })
 
   res.json({
     success: true,
+    imageId: newCode.imageId || undefined
   })
 }

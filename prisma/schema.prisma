@@ -51,6 +51,8 @@ model Code {
   scans   Int
   name    String?
   note    String?
+
+  imageId String?
 }
 
 model ClaimCode {
