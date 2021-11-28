@@ -61,8 +61,11 @@ import {
   CheckIcon,
   CloseIcon,
   DownloadIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
   EditIcon,
   InfoIcon,
+  DeleteIcon,
   InfoOutlineIcon,
 } from '@chakra-ui/icons'
 import JSZip from 'jszip'
@@ -118,7 +121,7 @@ const QuestSettings: NextPage = () => {
 
   const [processingDownload, setProcessingDownload] = useState(false)
 
-  const  = useRef()
+  // const  = useRef()
 
   type NewCodeData = Partial<{
     note: string
@@ -680,8 +683,11 @@ const QuestSettings: NextPage = () => {
                     borderColor={'gray.100'}
                     alignSelf={'center'}
                   >
-                    <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadRe} />
-                    <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} />
+                    {/* <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadInputRef} /> */}
+                    {/* <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} onClose={} /> */}
+                    <IconButton variant={'ghost'} aria-label='Delete' icon={<ChevronUpIcon />} />
+                    <IconButton variant={'ghost'} aria-label='Delete' icon={<DeleteIcon />} />
+                    <IconButton variant={'ghost'} aria-label='Delete' icon={<ChevronDownIcon />} />
                   </Flex>
                 </Flex></Box>
               ))}
