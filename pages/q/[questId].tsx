@@ -1,4 +1,4 @@
-import type { NextPage, NextPageContext } from 'next'
+import type { NextPage } from 'next'
 import Layout from 'components/Layout'
 import Meta from 'components/Meta'
 import { useRouter } from 'next/router'
@@ -27,17 +27,12 @@ import {
   Switch,
   FormLabel,
   FormControl,
-  FormHelperText,
   Tooltip,
   useEditableControls,
   ButtonGroup,
   IconButton,
-  Input,
   NumberInput,
   NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   Select,
   Table,
   Thead,
@@ -52,8 +47,6 @@ import { useEffect, useRef, useState } from 'react'
 import { GetQuestResponse } from 'pages/api/quest/[slug]'
 import axios from 'lib/axios'
 import { useToast } from 'lib/toast'
-import create from 'zustand'
-import { GetQuestsResponse } from 'pages/api/getquests'
 import { DeleteResponse } from 'pages/api/quest/[slug]/delete'
 import {
   ArrowBackIcon,
@@ -64,16 +57,15 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   EditIcon,
-  InfoIcon,
   DeleteIcon,
   InfoOutlineIcon,
 } from '@chakra-ui/icons'
-import JSZip from 'jszip'
 import Link from 'next/link'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
 import { CLAIM_CODE_LENGTH, DEFAULT_COMPLETION_NOTE } from 'pages/[code]'
 import { Quest } from '@prisma/client'
-import { BsCardImage } from 'react-icons/bs'
+import { zipAndDownloadB64Files } from 'lib/files'
+import { useQuestState } from 'lib/questReducer'
 
 function TitleControls() {
   const {
@@ -112,7 +104,9 @@ const QuestSettings: NextPage = () => {
   useRequireAuth()
   const router = useRouter()
   const user = useGlobalState((s) => s.user)
-  const [quest, setQuestData] = useState<GetQuestResponse['quest']>()
+  // const [quest, setQuestData] = useState<GetQuestResponse['quest']>()
+  const [state, dispatch] = useQuestState()
+  const quest = state.quest
   const toast = useToast()
 
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -153,6 +147,7 @@ const QuestSettings: NextPage = () => {
       axios
         .get<GetQuestResponse>('/api/quest/' + router.query.questId)
         .then((res) => {
+          dispatch({ type: 'setQuest', quest: res.data.quest })
           setQuestData(res.data.quest)
           setVictoryType(res.data.quest?.victoryFulfillment)
           if (res.data.notFound) {
@@ -187,26 +182,13 @@ const QuestSettings: NextPage = () => {
 
   const downloadAll = async () => {
     setProcessingDownload(true)
-    const zip = new JSZip()
 
-    for (const i in quest!.codes) {
-      zip.file(
-        `qr-${Number(i) + 1}-${quest!.codes[i].name || ''}.png`,
-        quest!.codes[i].image.split(',')[1],
-        {
-          base64: true,
-        }
-      )
-    }
+    const downloadList = quest!.codes.map((c, i) => ({
+      name: `qr-${Number(i) + 1}-${c.name || 'code'}.png`,
+      file: quest!.codes[i].image,
+    }))
 
-    const file = await zip.generateAsync({
-      type: 'base64',
-    })
-
-    const a = document.createElement('a')
-    a.href = 'data:application/zip;base64,' + file
-    a.download = `qr-code-quest ${quest?.name}` // ZIP File name
-    a.click() // Trigger the download
+    await zipAndDownloadB64Files(downloadList, `qr-code-quest ${quest?.name}`)
 
     setProcessingDownload(false)
     toast({
@@ -590,106 +572,123 @@ const QuestSettings: NextPage = () => {
               borderColor={'gray.100'}
             >
               {quest.codes.map((c, i) => (
-                <Box w='full'>
-                <Flex w='full' gridGap={'6'} key={c.slug}>
-                  <Image src={c.image} alt="QR Code" w={'44'} />
-                  <Flex
-                    w="full"
-                    direction={'column'}
-                    gridGap={'0.5'}
-                    key={c.slug}
-                    flex={'1 0 0px'}
-                  >
-                    <Heading size={'md'} display={'flex'} alignItems={'center'}>
-                      <Text as="span" color={'gray.400'} mr="2">
-                        {i + 1}.
-                      </Text>
-                      <Editable
-                        defaultValue={c.name || `Code ${i + 1}`}
-                        onSubmit={(name) => updateCodeName(c.slug, name)}
-                      >
-                        <EditablePreview cursor={'pointer'} />
-                        <EditableInput />
-                      </Editable>
-                    </Heading>
-                    <a href={c.url + '/?testMode=1'} target={'_blank'}>
-                      <Text fontSize={'xs'} color={'gray.400'}>
-                        {c.url}
-                      </Text>
-                    </a>
-                    <Text fontWeight={'bold'}>Total scans: {c.scans}</Text>
-
-                    <Textarea
-                      defaultValue={c.note || ''}
-                      overflow={'scroll'}
+                <Box w="full">
+                  <Flex w="full" gridGap={'6'} key={c.slug}>
+                    <Image src={c.image} alt="QR Code" w={'44'} />
+                    <Flex
                       w="full"
-                      border={'none'}
-                      focusBorderColor="none"
-                      p="0"
-                      size="sm"
-                      rows={2}
-                      placeholder="Leave a note for your questers..."
-                      resize={'none'}
-                      onChange={(e) =>
-                        updateCode(c.slug, { note: e.target.value })
-                      }
-                    />
-
-                    <Spacer />
-                    <Flex gridGap={'3'}>
-                      <a
-                        href={c.image}
-                        download={`qr-code-quest-${quest.id}_${i + 1} ${
-                          c.name || ''
-                        }`}
+                      direction={'column'}
+                      gridGap={'0.5'}
+                      key={c.slug}
+                      flex={'1 0 0px'}
+                    >
+                      <Heading
+                        size={'md'}
+                        display={'flex'}
+                        alignItems={'center'}
                       >
-                        <Button
-                          colorScheme={'primary'}
-                          size="sm"
-                          leftIcon={<DownloadIcon />}
-                          onClick={() => {
-                            toast({
-                              title: 'Preparing download...',
-                              status: 'info',
-                              duration: 2000,
-                            })
-                          }}
+                        <Text as="span" color={'gray.400'} mr="2">
+                          {i + 1}.
+                        </Text>
+                        <Editable
+                          defaultValue={c.name || `Code ${i + 1}`}
+                          onSubmit={(name) => updateCodeName(c.slug, name)}
                         >
-                          Download
-                        </Button>
+                          <EditablePreview cursor={'pointer'} />
+                          <EditableInput />
+                        </Editable>
+                      </Heading>
+                      <a href={c.url + '/?testMode=1'} target={'_blank'}>
+                        <Text fontSize={'xs'} color={'gray.400'}>
+                          {c.url}
+                        </Text>
                       </a>
-                      {newCodesData[c.slug] && (
-                        <Button
-                          size="sm"
-                          colorScheme={'secondary'}
-                          leftIcon={<CheckIcon />}
-                          isLoading={codesSaving[c.slug]}
-                          loadingText="Saving..."
-                          onClick={() => saveCode(c.slug)}
+                      <Text fontWeight={'bold'}>Total scans: {c.scans}</Text>
+
+                      <Textarea
+                        defaultValue={c.note || ''}
+                        overflow={'scroll'}
+                        w="full"
+                        border={'none'}
+                        focusBorderColor="none"
+                        p="0"
+                        size="sm"
+                        rows={2}
+                        placeholder="Leave a note for your questers..."
+                        resize={'none'}
+                        onChange={(e) =>
+                          updateCode(c.slug, { note: e.target.value })
+                        }
+                      />
+
+                      <Spacer />
+                      <Flex gridGap={'3'}>
+                        <a
+                          href={c.image}
+                          download={`qr-code-quest-${quest.id}_${i + 1} ${
+                            c.name || ''
+                          }`}
                         >
-                          Save
-                        </Button>
-                      )}
+                          <Button
+                            colorScheme={'primary'}
+                            size="sm"
+                            leftIcon={<DownloadIcon />}
+                            onClick={() => {
+                              toast({
+                                title: 'Preparing download...',
+                                status: 'info',
+                                duration: 2000,
+                              })
+                            }}
+                          >
+                            Download
+                          </Button>
+                        </a>
+                        {newCodesData[c.slug] && (
+                          <Button
+                            size="sm"
+                            colorScheme={'secondary'}
+                            leftIcon={<CheckIcon />}
+                            isLoading={codesSaving[c.slug]}
+                            loadingText="Saving..."
+                            onClick={() => saveCode(c.slug)}
+                          >
+                            Save
+                          </Button>
+                        )}
+                      </Flex>
+                    </Flex>
+                    <Flex
+                      direction={'column'}
+                      gridGap={'1'}
+                      key={c.slug}
+                      flex="0 1 0px"
+                      p="1"
+                      rounded={'lg'}
+                      border="1px"
+                      borderColor={'gray.100'}
+                      alignSelf={'center'}
+                    >
+                      {/* <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadInputRef} /> */}
+                      {/* <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} onClose={} /> */}
+                      <IconButton
+                        variant={'ghost'}
+                        aria-label="Delete"
+                        icon={<ChevronUpIcon />}
+                      />
+                      <IconButton
+                        variant={'ghost'}
+                        aria-label="Delete"
+                        icon={<DeleteIcon />}
+                      />
+                      <IconButton
+                        variant={'ghost'}
+                        aria-label="Delete"
+                        icon={<ChevronDownIcon />}
+                      />
                     </Flex>
                   </Flex>
-                  <Flex
-                    direction={'column'}
-                    gridGap={'1'}
-                    key={c.slug}
-                    flex='0 1 0px'
-                    p='1'
-                    rounded={'lg'}
-                    border='1px'
-                    borderColor={'gray.100'}
-                    alignSelf={'center'}
-                  >
-                    {/* <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadInputRef} /> */}
-                    {/* <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} onClose={} /> */}
-                    <IconButton variant={'ghost'} aria-label='Delete' icon={<ChevronUpIcon />} />
-                    <IconButton variant={'ghost'} aria-label='Delete' icon={<DeleteIcon />} />
-                    <IconButton variant={'ghost'} aria-label='Delete' icon={<ChevronDownIcon />} />
-                  </Flex>
-                </Flex></Box>
+                </Box>
               ))}
             </Stack>
           </Box>

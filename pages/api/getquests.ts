@@ -25,8 +25,8 @@ export default async function handler(
       userId: user.uid,
     },
     orderBy: {
-      createdDate: 'desc'
-    }
+      createdDate: 'desc',
+    },
   })
 
   res.json({

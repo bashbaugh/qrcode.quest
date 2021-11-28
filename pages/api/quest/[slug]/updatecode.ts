@@ -39,7 +39,11 @@ export default async function handler(
     return
   }
 
-  const { name, note, uploadImage }: { name?: string; note?: string; uploadImage: boolean } = req.body.newData
+  const {
+    name,
+    note,
+    uploadImage,
+  }: { name?: string; note?: string; uploadImage: boolean } = req.body.newData
 
   const newCode = await prisma.code.update({
     where: {
@@ -48,12 +52,12 @@ export default async function handler(
     data: {
       name,
       note,
-      imageId: uploadImage ? nanoid(18) : undefined
+      imageId: uploadImage ? nanoid(18) : undefined,
     },
   })
 
   res.json({
     success: true,
-    imageId: newCode.imageId || undefined
+    imageId: newCode.imageId || undefined,
   })
 }

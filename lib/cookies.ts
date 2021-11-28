@@ -1,8 +1,4 @@
-import {
-  NextApiRequest,
-  NextApiResponse,
-  NextPageContext,
-} from 'next'
+import { NextApiRequest, NextApiResponse, NextPageContext } from 'next'
 import cookie from 'cookie'
 
 export const SCANNED_CODES_COOKIE_NAME = 'sqrcs'
