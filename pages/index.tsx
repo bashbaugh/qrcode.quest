@@ -31,7 +31,9 @@ const Home: NextPage = () => {
       <Meta title="Home" />
       <Flex gridGap={'4'} alignItems={'center'}>
         <Image src="/img/logo1.svg" alt="QRCode.Quest" h="9" />
-        <Badge fontSize={'0.8rem'} colorScheme={'primary'}>beta</Badge>
+        <Badge fontSize={'0.8rem'} colorScheme={'primary'}>
+          beta
+        </Badge>
         <Spacer />
         {user && (
           <Link href="/quests">

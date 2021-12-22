@@ -45,39 +45,36 @@ const Meta: React.FC<{
           <meta key="tw_img" name="twitter:image" content={image} />
         </>
       )}
-      {/* <meta key="theme_color" name="theme-color" content={theme.colors.primary} /> */}
-      {/* <meta
-      key="tile_color"
-      name="msapplication-TileColor"
-      content={theme.colors.primary}
-    />
-    <link
-      key="safari_icon"
-      rel="mask-icon"
-      href={`${url}/safari-pinned-tab.png`}
-      color={theme.colors.primary}
-    /> */}
-      {/* <link
-      key="apple_icon"
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href={`${url}/apple-touch-icon.png`}
-    />
-    <link
-      key="favicon_32"
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href={`${url}/favicon-32x32.png`}
-    />
-    <link
-      key="favicon_16"
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href={`${url}/favicon-16x16.png`}
-    />
-    <link key="manifest" rel="manifest" href={`${url}/site.webmanifest`} /> */}
+      <link
+        rel="apple-touch-icon"
+        sizes="180x180"
+        href="/favicon/apple-touch-icon.png"
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href="/favicon/favicon-32x32.png"
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="/favicon/favicon-16x16.png"
+      />
+      <link rel="manifest" href="/favicon/site.webmanifest" />
+      <link
+        rel="mask-icon"
+        href="/favicon/safari-pinned-tab.svg"
+        color="#b02ff1"
+      />
+      <link rel="shortcut icon" href="/favicon/favicon.ico" />
+      <meta name="apple-mobile-web-app-title" content="QRCode.Quest" />
+      <meta name="application-name" content="QRCode.Quest" />
+      <meta name="msapplication-TileColor" content="#9f00a7" />
+      <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
+      <meta name="theme-color" content="#B02FF1" />
+
       {children}
     </Head>
   )
