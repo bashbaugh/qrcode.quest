@@ -39,7 +39,7 @@ import {
   Td,
 } from '@chakra-ui/react'
 import { useRequireAuth } from 'lib/hooks'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'lib/axios'
 import { useToast } from 'lib/toast'
 import {
@@ -119,6 +119,10 @@ const QuestSettings: NextPage = () => {
 
   const [claimCodeVal, setClaimCodeVal] = useState<string>()
   const [victoryType, setVictoryType] = useState<Quest['victoryFulfillment']>()
+
+  useEffect(() => {
+    setVictoryType(quest?.victoryFulfillment)
+  }, [quest?.victoryFulfillment])
 
   const downloadAll = async () => {
     setProcessingDownload(true)
