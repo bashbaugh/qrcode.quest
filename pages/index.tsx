@@ -9,6 +9,7 @@ import {
   Text,
   Heading,
   Box,
+  Badge,
 } from '@chakra-ui/react'
 import { useGlobalState } from 'lib/state'
 import Link from 'next/link'
@@ -26,11 +27,11 @@ const Home: NextPage = () => {
   const [currentDemoCode, setCurrentDemoCode] = useState(0)
 
   return (
-    <Layout>
+    <Layout showFooter>
       <Meta title="Home" />
       <Flex gridGap={'4'} alignItems={'center'}>
         <Image src="/img/logo1.svg" alt="QRCode.Quest" h="9" />
-        <Text></Text>
+        <Badge fontSize={'0.8rem'} colorScheme={'primary'}>beta</Badge>
         <Spacer />
         {user && (
           <Link href="/quests">

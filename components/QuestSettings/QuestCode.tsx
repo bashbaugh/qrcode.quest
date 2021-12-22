@@ -111,14 +111,18 @@ const QuestCode: React.FC<{
                 leftIcon={<CheckIcon />}
                 isLoading={saving}
                 loadingText="Saving..."
-                onClick={() => updateCode(c.slug, tempCodeData)}
+                onClick={() => {
+                  updateCode(c.slug, tempCodeData).then(() =>
+                    setTempCodeData(null)
+                  )
+                }}
               >
                 Save
               </Button>
             )}
           </Flex>
         </Flex>
-        <Flex
+        {/* <Flex
           direction={'column'}
           gridGap={'1'}
           key={c.slug}
@@ -129,8 +133,8 @@ const QuestCode: React.FC<{
           borderColor={'gray.100'}
           alignSelf={'center'}
         >
-          {/* <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadInputRef} /> */}
-          {/* <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} onClose={} /> */}
+          {/* <input style={{ width: 0, height: 0, visibility: 'hidden' }} ref={uploadInputRef} />
+          {/* <IconButton variant={'ghost'} aria-label='Upload Image' icon={<BsCardImage />} onClose={} />
           <IconButton
             variant={'ghost'}
             aria-label="Delete"
@@ -146,7 +150,7 @@ const QuestCode: React.FC<{
             aria-label="Delete"
             icon={<ChevronDownIcon />}
           />
-        </Flex>
+        </Flex> */}
       </Flex>
     </Box>
   )

@@ -7,7 +7,6 @@ import { GetQuestResponse } from 'pages/api/quest/[slug]'
 import { DeleteResponse } from 'pages/api/quest/[slug]/delete'
 import { UpdateQuestCodeResponse } from 'pages/api/quest/[slug]/updatecode'
 import { useEffect, useState } from 'react'
-import { useQuestState } from './questReducer'
 
 // TODO useCb?
 const useQuest = () => {
@@ -112,15 +111,11 @@ const useQuest = () => {
         `/api/quest/${quest?.id}/updatecode`,
         {
           slug,
-          newData: {
-            // note: newCodesData[slug]?.note,
-            note: newData,
-          },
+          newData,
         }
       )
-      // _setNewCodesData((d) => ({ ...d, [slug]: null }))
       toast({
-        title: 'Note published',
+        title: 'Code updated',
         status: 'success',
         duration: 1000,
       })
