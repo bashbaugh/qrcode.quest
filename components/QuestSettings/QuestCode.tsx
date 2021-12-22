@@ -40,7 +40,7 @@ const QuestCode: React.FC<{
 
   return (
     <Box w="full" key={c.slug}>
-      <Flex w="full" gridGap={'6'} key={c.slug}>
+      <Flex w="full" gridGap={'6'} key={c.slug} direction={{ base: 'column', sm: 'row'}}>
         <Image src={c.image} alt="QR Code" w={'44'} />
         <Flex
           w="full"

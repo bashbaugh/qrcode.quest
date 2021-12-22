@@ -11,6 +11,7 @@ import { getAuth, onAuthStateChanged } from '@firebase/auth'
 import { useGlobalState } from 'lib/state'
 import axios from 'lib/axios'
 import theme from '../theme'
+import Script from 'next/script'
 
 NProgress.configure({
   minimum: 0.4,
@@ -50,6 +51,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <div>
       <ChakraProvider theme={theme}>
         <Component {...pageProps} />
+        <Script src="https://simplecount.qrcode.quest/latest.js"  />
       </ChakraProvider>
     </div>
   )

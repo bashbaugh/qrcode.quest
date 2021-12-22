@@ -68,7 +68,7 @@ const Hunts: NextPage = () => {
           Sign Out
         </Button>
       </Flex>
-      <Grid templateColumns="repeat(3, 1fr)" gap={4} my="8">
+      <Grid templateColumns={{base: "repeat(1, 1fr)", sm: "repeat(3, 1fr)"}} gap={4} my="8">
         {loaded && (
           <>
             <Link href="/create">
