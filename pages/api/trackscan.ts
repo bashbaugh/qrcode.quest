@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
-import { requireAuth } from 'lib/apiAuth'
+import { requireAuth } from 'lib/api/auth'
 import cookie from 'cookie'
 import { getCookieData } from 'lib/cookies'
 

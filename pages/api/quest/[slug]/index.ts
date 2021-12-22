@@ -1,38 +1,42 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Code, PrismaClient, Quest } from '@prisma/client'
-import { requireAuth } from 'lib/apiAuth'
-import { getQrCode } from 'lib/qr'
+import { requireAuth } from 'lib/api/auth'
+import { getQrCode } from 'lib/api/qr'
 
 const prisma = new PrismaClient()
 
+export interface QuestCodeData {
+  slug: string
+  scans: number
+  image: string
+  name: string | null
+  note: string | null
+  url: string
+}
+
+export interface QuestData {
+  id: string
+  name: string
+  enableConfetti: boolean
+  completionNote: string
+  enableQuest: boolean
+  victoryFulfillment: Quest['victoryFulfillment']
+  completionsCount: number
+  codes: Array<QuestCodeData>
+  claimCodes: Array<{
+    id: number
+    claimed: boolean
+    code: number
+  }>
+  claimEmails: Array<{
+    email: string
+  }>
+}
+
 export interface GetQuestResponse {
   notFound?: true
-  quest?: {
-    id: string
-    name: string
-    enableConfetti: boolean
-    completionNote: string
-    enableQuest: boolean
-    victoryFulfillment: Quest['victoryFulfillment']
-    completionsCount: number
-    codes: Array<{
-      slug: string
-      scans: number
-      image: string
-      name: string | null
-      note: string | null
-      url: string
-    }>
-    claimCodes: Array<{
-      id: number
-      claimed: boolean
-      code: number
-    }>
-    claimEmails: Array<{
-      email: string
-    }>
-  }
+  quest?: QuestData
 }
 
 export default async function handler(

@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
-import { requireAuth } from 'lib/apiAuth'
+import { requireAuth } from 'lib/api/auth'
 import { nanoid } from 'nanoid'
 
 const prisma = new PrismaClient()
