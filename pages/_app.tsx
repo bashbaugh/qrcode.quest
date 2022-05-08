@@ -51,7 +51,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     <div>
       <ChakraProvider theme={theme}>
         <Component {...pageProps} />
-        <Script src="https://simplecount.qrcode.quest/latest.js"  />
       </ChakraProvider>
     </div>
   )

@@ -26,6 +26,7 @@ class MyDocument extends Document {
               .join('')}display=swap`}
             rel="stylesheet"
           />
+          <script defer data-domain="qrcode.quest" src="https://p.bweb.app/js/script.js"></script>
         </Head>
         <body>
           <Main />
